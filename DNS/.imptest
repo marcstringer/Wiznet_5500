@@ -1,0 +1,14 @@
+{
+    "apiKey": "3f1a612220fc61532ba5206b48d2de14",
+    "modelId": "9wKNLA3GurDQ" /* Wiznet_5500_Driver */,
+    "devices": [
+        "500098f1706fd38e" /* 500098f1706fd38e */
+    ],
+    "agentFile": "agent.nut",
+    "deviceFile": "device.out.nut",
+    "stopOnFailure": false,
+    "timeout": 30,
+    "tests": [
+        "tests/**/*.test.nut"
+    ]
+}
