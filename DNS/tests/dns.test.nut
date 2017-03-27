@@ -239,7 +239,7 @@ class DeviceTestCase extends ImpTestCase {
     }
 
     // test for a hostName that will return multiple A records
-    function TestMultipleA() {
+    function testMultipleA() {
         _wiz.configureNetworkSettings(SOURCE_IP, SUBNET_MASK, GATEWAY_IP);
         local dns = W5500.DNS(_wiz);
         return Promise(function(resolve, reject) {

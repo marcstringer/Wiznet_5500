@@ -13,8 +13,7 @@ enabling the W5500.DNS to utilise W5500 functionality.
 ## Class Methods
 
 ### dnsResolve(*hostname, cb*)
-This function performs a dns request for the given hostname. The returned ip addresses are passed into the callback.
-The IP addresses are stored as strings within an array.  
+This function performs a dns request for the given hostname Returning IPV4 addresses. The returned ip addresses are passed into the callback.The IPV4 addresses are stored as strings within an array.  
 
 | Key | Data Type |Required | Default Value |Description |
 |----|------------|---------|--------------|------------|
@@ -25,7 +24,7 @@ The IP addresses are stored as strings within an array.
 #### Callback Arguments
 |Key |Data Type|Description|
 |-----|----|----|
-|error|string|An error message if there was a issue receiving the data or null if it was successful|
+|error|string|An error message if there was a problem or null if successful.|
 |data|array|An array with a table per received IPV4 address. Within the table is a key value pair: the key which is a string indicating which ip address was received and the value which is an ipv4 address which is a string |
 
 #### Example Code:

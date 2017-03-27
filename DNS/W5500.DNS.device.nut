@@ -84,11 +84,12 @@ const W5500_DNS_NUM_DNS_SERVERS = 4; // number of dns servers
 const W5500_DNS_PORT = 53; // port used for dns requests
 const W5500_DNS_A = 1; // represents an A record type
 const W5500_DNS_CNAME = 5; // represents a CNAME record type
-const W5500_DNS_1_BYTE = 1 ; // represents 1 byte
-
+const W5500_DNS_1_BYTE = 1; // represents 1 byte
+const W5500_DNS_2_BYTE = 2; // represents 2 bytes
+const W5500_DNS_NUM_IN_IPV4 = 4; // number of numbers in a ipv4 address
+const W5500_DNS_NUM_RTRY_UDP = 2; // number of times to retry a dns server before switching
 
 // ERROR messages
-
 const W5500_DNS_ERR_PRCID = "error: invalid process id received" ;
 const W5500_DNS_ERR_IP = "error: incorrect ip address received";
 const W5500_DNS_ERR_PORT = "Invalid Port";
@@ -326,7 +327,7 @@ class W5500.DNS {
 
 
         //local ipNum = "ip" + _ipCount.tostring();
-        for (local i = 0; i < 4; i++) {
+        for (local i = 0; i < W5500_DNS_NUM_IN_IPV4; i++) {
             if (packet.readn('b') != ip[i]) {
                 return W5500_DNS_ERR_IP;
             }
@@ -348,7 +349,7 @@ class W5500.DNS {
         packet.seek(W5500_DNS_1_BYTE, 'c');
         local port = packet.readn('b');
         if (port == W5500_DNS_PORT) {
-            packet.seek(2, 'c');
+            packet.seek(W5500_DNS_2_BYTE, 'c');
             return null ;
         } else {
             return W5500_DNS_ERR_PORT;
@@ -780,7 +781,7 @@ class W5500.DNS {
         _waiting = imp.wakeup(timeToWait, function() {
             if (_receivedDataFlag == false) {
                 // may retry dns server several times
-                if (_retryCount >= 2) {
+                if (_retryCount >= W5500_DNS_NUM_RTRY_UDP) {
                     _dnsServerChange(hostName, cb);
                     if (_debug) {server.log("error: failed to receive response from a dns server")};
 

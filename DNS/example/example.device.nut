@@ -18,13 +18,14 @@ function dnsCB() {
     // Initialise dns requires a configure wiznet object
 
     service <- W5500.DNS(wiz);
-    service.dnsResolve("www.reddit.com", function (err, data) {
+    // throws any error otherwise do something with the packet
+    service.dnsResolve("www.facebook.com", function (err, data) {
         if (err) {
             throw err;
         }
         else {
             // display all returned ip addresses
-            for (local i =0; i < data.len(); i++ ) {
+            for (local i = 0; i < data.len(); i++ ) {
                 server.log(data[i]);
             }
         }
