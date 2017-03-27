@@ -8,7 +8,7 @@ const URL_CLASS_A = "www.google.com";
 const URL_CLASS_CNAME = "www.facebook.com";
 
 // server that does not respond to a dns request
-SERVER_NO_RESPONSE <-[2, 2, 2, 2];
+const SERVER_NO_RESPONSE  = "2.2.2.2";
 
 class DeviceTestCase extends ImpTestCase {
 
@@ -64,7 +64,7 @@ class DeviceTestCase extends ImpTestCase {
     // make a number of fake pack then check that the functions in
     // parsePacket perform as expected
     function testIPchecker() {
-        _dns._ipCount = 2;
+        _dns._ipCount = 1;
         local testPass = _dns._makePacket([
             { "k": "ip1", "s": 1, "v": 8 },
             { "k": "ip2", "s": 1, "v": 8 },
@@ -196,17 +196,16 @@ class DeviceTestCase extends ImpTestCase {
     function testTimeout() {
         _wiz.configureNetworkSettings(SOURCE_IP, SUBNET_MASK, GATEWAY_IP);
         local dns = W5500.DNS(_wiz);
-        dns._dnsIpAddr = {
-            "ip1": SERVER_NO_RESPONSE,
-            "ip2": [8, 8, 4, 4],
-            "ip3": [208, 67, 222, 222],
-            "ip4": [208, 67, 220, 220]
-        }
+        dns._dnsIpAddr = [
+            SERVER_NO_RESPONSE,
+            "8.8.4.4",
+            "208.67.222.222",
+            "208.67.220.220"]
 
         return Promise(function(resolve, reject) {
             dns.dnsResolve(URL_CLASS_A, function(err, data) {
                 // first ip address failed moved to the next 1
-                this.assertTrue(dns._ipCount == 2);
+                this.assertTrue(dns._ipCount == 1, "ipcoutn is "+ dns._ipCount);
                 // check that there is an ip address entered
                 for (local i = 0; i < 4; i++) {
                     this.assertTrue(data[0].v[i] != null);
@@ -225,7 +224,7 @@ class DeviceTestCase extends ImpTestCase {
             dns.dnsResolve(URL_CLASS_A, function(err, data) {
 
                 // check that connected to first dns server
-                this.assertTrue(dns._ipCount == 1);
+                this.assertTrue(dns._ipCount == 0);
                 // check that there is an ip address entered
                 for (local i = 0; i < 4; i++) {
                     this.assertTrue(data[0].v[i] != null);

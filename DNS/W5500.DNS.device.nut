@@ -2,7 +2,7 @@
 
 // MIT License
 //
-// Copyright 2017 Electric Imp
+// Copyright 2017 Mystic Pants Pty Ltd
 //
 // SPDX-License-Identifier: MIT
 //
@@ -84,6 +84,7 @@ const W5500_DNS_NUM_DNS_SERVERS = 4; // number of dns servers
 const W5500_DNS_PORT = 53; // port used for dns requests
 const W5500_DNS_A = 1; // represents an A record type
 const W5500_DNS_CNAME = 5; // represents a CNAME record type
+const W5500_DNS_1_BYTE = 1 ; // represents 1 byte
 
 
 // ERROR messages
@@ -113,22 +114,23 @@ class W5500.DNS {
     _receivedData = null; // received data
     _hostNameLength = null; // length in bytes of the hostName packed
     _TTL = null; // time to to live of the IPv4 address
-    _ipCount = 1; // dns server ip index
+    _ipCount = 0; // dns server ip index
     _prcid1 = null; // process id
     _prcid2 = null;
     _retryCount = 0; // udp retry count
     _receivedDataFlag = false; // flag raised when data packet arrives
     _connection = null; // wiznet connection instance
-    _debug = 0; // displays logs
+    _debug = 1; // displays logs
     _waiting = null; // waiting for a response from the server
-    // table of ip addresses for dns servers
-    _dnsIpAddr = {
-        "ip1": [8, 8, 8, 8],
-        "ip2": [8, 8, 4, 4],
-        "ip3": [208, 67, 222, 222],
-        "ip4": [208, 67, 220, 220]
-    }
 
+
+    // array of ip addresses for dns servers
+    _dnsIpAddr = [
+        "8.8.8.8",
+        "8.8.4.4",
+        "208.67.222.222",
+        "208.67.220.220"
+    ]
     constructor(wiznet) {
         _wiz = wiznet;
     }
@@ -184,7 +186,7 @@ class W5500.DNS {
                 local element = {} // element to be added to array
                     // add the segment length to the array
                 element.k <- "QN" + idNum.tostring();
-                element.s <- 1;
+                element.s <- W5500_DNS_1_BYTE;
                 element.v <- count;
                 arrayElements.append(element);
                 idNum += 1;
@@ -203,7 +205,7 @@ class W5500.DNS {
                     element = {}
                         // add the segment
                     element.k <- "QN" + idNum.tostring();
-                    element.s <- 1;
+                    element.s <- W5500_DNS_1_BYTE;
                     element.v <- 0;
                     arrayElements.append(element);
                     totalLength += 1;
@@ -310,10 +312,20 @@ class W5500.DNS {
      ***************************************************************************/
     // check it was the right ip address that was sent to
     function _checkIP(packet) {
+        local ip = null;
+        //local addr = _dnsIpAddr[_ipCount];
+        if (typeof(_dnsIpAddr[_ipCount]) == "string") {
+            local parts = split(_dnsIpAddr[_ipCount], ".");
+            ip = [parts[0].tointeger(), parts[1].tointeger(), parts[2].tointeger(), parts[3].tointeger()];
+        }
+        else {
+            ip = _dnsIpAddr[_ipCount];
+        }
 
-        local ipNum = "ip" + _ipCount.tostring();
+
+        //local ipNum = "ip" + _ipCount.tostring();
         for (local i = 0; i < 4; i++) {
-            if (packet.readn('b') != _dnsIpAddr[ipNum][i]) {
+            if (packet.readn('b') != ip[i]) {
                 throw W5500_DNS_ERR_IP;
             }
         }
@@ -328,7 +340,7 @@ class W5500.DNS {
     // check that packet was returned on the correct port
     function _checkPort(packet) {
         // discard an unimportant byte
-        packet.seek(1, 'c');
+        packet.seek(W5500_DNS_1_BYTE, 'c');
         local port = packet.readn('b');
         if (port == W5500_DNS_PORT) {
             packet.seek(2, 'c');
@@ -402,7 +414,7 @@ class W5500.DNS {
      ***************************************************************************/
     // Number of Questions that the the dns server has received
     function _numberQs(packet) {
-        packet.seek(1, 'c');
+        packet.seek(W5500_DNS_1_BYTE, 'c');
         if (packet.readn('b') != 1) {
             throw W5500_DNS_ERR_QS;
         }
@@ -417,7 +429,7 @@ class W5500.DNS {
      ***************************************************************************/
     // Number of answers that the dns server has provided
     function _numberAns(packet) {
-        packet.seek(1, 'c');
+        packet.seek(W5500_DNS_1_BYTE, 'c');
         local numberOfAnswers = packet.readn('b');
         return numberOfAnswers;
     }
@@ -458,7 +470,7 @@ class W5500.DNS {
      ***************************************************************************/
     // Checks that the dns server received to specify a IPv4 address
     function _checkIPV4(packet) {
-        packet.seek(1, 'c');
+        packet.seek(W5500_DNS_1_BYTE, 'c');
         local byte = packet.readn('b');
         if (byte != 1) {
             throw W5500_DNS_ERR_NOT_IPV4;
@@ -473,7 +485,7 @@ class W5500.DNS {
      ***************************************************************************/
     // Checks that the dns server received to specified the internet class
     function _checkInternet(packet) {
-        packet.seek(1, 'c');
+        packet.seek(W5500_DNS_1_BYTE, 'c');
         local byte = packet.readn('b');
         if (byte != 1) {
             throw W5500_DNS_ERR_NOT_INET;
@@ -505,7 +517,7 @@ class W5500.DNS {
      ***************************************************************************/
     // Checks what record the dns server has responded with
     function _checkRecord(packet) {
-        packet.seek(1, 'c');
+        packet.seek(W5500_DNS_1_BYTE, 'c');
         local record = packet.readn('b');
         return record
     }
@@ -534,7 +546,7 @@ class W5500.DNS {
      ***************************************************************************/
     // Reads the number of bytes that are used to write the ip address
     function _lengthAnswer(packet) {
-        packet.seek(1, 'c');
+        packet.seek(W5500_DNS_1_BYTE, 'c');
         local length = packet.readn('b');
         return length
     }
@@ -570,7 +582,7 @@ class W5500.DNS {
         local element = {}; // element to be added to the array
         local arrayIP = []; // array of ip addresses
         local idNum = 0; // id number used for the key of the returned ip address
-
+        local currentRecord = null;
         // blob pointer at start of blob
         packet.seek(0, 'b');
 
@@ -598,6 +610,8 @@ class W5500.DNS {
             _TTL = _getTTL(packet);
             local answerLength = _lengthAnswer(packet);
             local ip = _ipAddress(packet, answerLength);
+            ip = _arrayToString(ip);
+            if(_debug) {server.log("the ip adress is "+ ip) };
             element = {}
             element.k <- "IP" + idNum.tostring();
             element.v <- ip;
@@ -607,18 +621,23 @@ class W5500.DNS {
 
         // if it is a CNAME answer
         else if (initialRecord == W5500_DNS_CNAME) {
+            server.log("was a cname");
             for (local cnt_i = 0; cnt_i < numAns; cnt_i++) {
                 // check name and record on subsequent loops
                 if (cnt_i > 0) {
                     packet.seek(2, 'c');
-                    local currentRecord = _checkRecord(packet);
+                    currentRecord = _checkRecord(packet);
                 }
                 _checkInternet(packet);
                 _TTL = _getTTL(packet);
                 local answerLength = _lengthAnswer(packet);
+                if (_debug) { server.log("answer length" + answerLength)};
                 // if its a A record ip address we add it to the table of ip addresses
+                if (_debug) {server.log("current record is " + currentRecord)};
                 if (currentRecord == W5500_DNS_A) {
                     local ip = _ipAddress(packet, answerLength);
+                    if(_debug) { server.log("ip address is "+ ip)};
+                    ip = _arrayToString(ip);
                     element = {}
                     element.k <- "IP" + idNum.tostring();
                     element.v <- ip;
@@ -638,13 +657,27 @@ class W5500.DNS {
     }
 
     /***************************************************************************
+     *  _arrayToString
+     *  Returns:
+     *      string - a string representation of an string address
+     *  Parameters:
+     *      array - an array representation of an ipv4 address
+     **************************************************************************/
+    function _arrayToString (array) {
+        local string = array[0].tostring();
+        for (local i = 1; i < array.len(); i++ ) {
+            string += "." + array[i].tostring();
+        }
+        return string;
+    }
+    /***************************************************************************
      *  _backOffHandler
      *  Returns:
      *  Parameters:
      *       hostName - a string containing a hostName address
      *       cb - a callback function to be called once received packet is unpacked
      *       connection - the instance of the connection
-     ***************************************************************************/
+     **************************************************************************/
     // handles re query back off if a server is non responsive
     function _backOffHandler(hostName, connection, cb) {
 
@@ -658,10 +691,12 @@ class W5500.DNS {
                     if (_debug) {server.log("error: failed to receive response from a dns server")};
 
                 } else {
-                    connection.close();
-                    _connection = null;
-                    _retryCount += 1;
-                    dnsResolve(hostName, cb);
+                    connection.close(function () {
+                        _connection = null;
+                        _retryCount += 1;
+                        dnsResolve(hostName, cb);
+                    }.bindenv(this));
+
 
                 }
             }
@@ -681,9 +716,11 @@ class W5500.DNS {
      function _dnsServerChange (hostName, cb) {
          _ipCount += 1; // increment to go to next dns server
          _retryCount = 0; // reset retry count for a fresh approach for next dns server
-         _connection.close();
-         _connection = null ;
-         dnsResolve(hostName, cb);
+         _connection.close(function () {
+             _connection = null ;
+             dnsResolve(hostName, cb);
+         }.bindenv(this));
+
      }
 
 
@@ -708,8 +745,7 @@ class W5500.DNS {
         local hostNameArray = _questionName(hostName);
         local packet = _makePacket(_arrayAssembly(hostNameArray));
         if (_debug) { server.log(packet) };
-        local ipNum = "ip" + _ipCount.tostring();
-        local destIP = _dnsIpAddr[ipNum];
+        local destIP = _dnsIpAddr[_ipCount];
         local destPort = W5500_DNS_PORT;
         local IPArray;
 
@@ -717,22 +753,23 @@ class W5500.DNS {
             _receivedDataFlag = true;
             imp.cancelwakeup(_waiting);
             if (err) {
-                _connection.close();
-                _connection = null;
-                return cb(err, null) }
+                _connection.close( function () {
+                    _connection = null;
+                    return cb(err, null)
+                }.bindenv(this));
+            }
             else {
                 if (_debug) {
                     server.log("data is received");
                     server.log(data);
                 }
                 IPArray = _parsePacket(data, hostName, cb);
-                _connection.close();
-                _connection = null;
-                cb(null, IPArray);
+                _connection.close( function () {
+                    _connection = null;
+                    cb(null, IPArray);
+                }.bindenv(this));
             }
-
         }.bindenv(this);
-
         _wiz.openConnection(destIP, destPort, W5500_SOCKET_MODE_UDP, function(err, connection) {
 
             if (err) {
@@ -750,14 +787,12 @@ class W5500.DNS {
                 connection.transmit(packet, function(err) {
                     if (err) {
                         server.error("Send failed, closing: " + err);
-                        connection.close();
-                        _connection = null;
+                        connection.close( function () {
+                            _connection = null;
+                        }.bindenv(this));
                     }
                 }.bindenv(this));
-
             }
-
-
         }.bindenv(this));
 
     }
