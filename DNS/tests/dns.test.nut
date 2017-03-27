@@ -93,7 +93,7 @@ class DeviceTestCase extends ImpTestCase {
 
 
     }
-
+    // tests the _checkport function
     function testPort() {
         local check;
         local testPass = _dns._makePacket([
@@ -119,6 +119,7 @@ class DeviceTestCase extends ImpTestCase {
         this.assertTrue(check == W5500_DNS_ERR_PORT, check);
     }
 
+    // checks the process id
     function testProcessId() {
         local check;
         _dns._generateProcessId();
@@ -221,7 +222,7 @@ class DeviceTestCase extends ImpTestCase {
 
     }
 
-    // test for a domain that does not resolve
+    // test for a hostName that does not resolve to a ip address
     function testDomainNotExist () {
         _wiz.configureNetworkSettings(SOURCE_IP, SUBNET_MASK, GATEWAY_IP);
         local dns = W5500.DNS(_wiz);
@@ -231,8 +232,6 @@ class DeviceTestCase extends ImpTestCase {
                 resolve();
             }.bindenv(this));
         }.bindenv(this));
-
-
 
     }
 
