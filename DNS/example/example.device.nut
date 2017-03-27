@@ -18,7 +18,7 @@ function dnsCB() {
     // Initialise dns requires a configure wiznet object
 
     service <- W5500.DNS(wiz);
-    service.dnsResolve("www.facebook.com", function (err, data) {
+    service.dnsResolve("www.reddit.com", function (err, data) {
         if (err) {
             throw err;
         }

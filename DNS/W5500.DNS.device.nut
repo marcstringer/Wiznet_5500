@@ -120,7 +120,7 @@ class W5500.DNS {
     _retryCount = 0; // udp retry count
     _receivedDataFlag = false; // flag raised when data packet arrives
     _connection = null; // wiznet connection instance
-    _debug = 0; // displays logs
+    _debug = 1; // displays logs
     _waiting = null; // waiting for a response from the server
 
 
@@ -757,7 +757,7 @@ class W5500.DNS {
      *  Parameters:
      *      array - an array representation of an ipv4 address
      **************************************************************************/
-    function _arrayToString (array) {
+    function _arrayToString(array) {
         local string = array[0].tostring();
         for (local i = 1; i < array.len(); i++ ) {
             string += "." + array[i].tostring();
@@ -807,7 +807,7 @@ class W5500.DNS {
      ***************************************************************************/
      // switches between dns servers by incrementing _ipCount when dnsResolve
      // chooses a the next dns ip adress from the array
-     function _dnsServerChange (hostName, cb) {
+     function _dnsServerChange(hostName, cb) {
          _ipCount += 1; // increment to go to next dns server
          _retryCount = 0; // reset retry count for a fresh approach for next dns server
          _connection.close(function () {

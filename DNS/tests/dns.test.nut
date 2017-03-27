@@ -1,14 +1,14 @@
-// echo server address and port
+//  User computer info
 const SOURCE_IP = "192.168.201.37";
 const SUBNET_MASK = "255.255.255.0";
 const GATEWAY_IP = "192.168.201.1";
 
 
-const URL_CLASS_A = "www.google.com";
-const URL_CLASS_CNAME = "www.facebook.com";
-const HOST_NAME_NO_DNS = "www.facebook.com.www.facebook.com"
-// server that does not respond to a dns request
-const SERVER_NO_RESPONSE  = "2.2.2.2";
+const HOST_NAME_A = "www.google.com"; // single ipv4 from an A record
+const HOST_NAME_CNAME = "www.facebook.com"; // single ipv4 from a CNAME record
+const HOST_NAME_NO_DNS = "www.facebook.com.www.facebook.com"; // hostname that doesn't result in a
+const HOST_NAME_MULT_A = "www.reddit.com"; // hostname that produces multiple ipv4 addresses
+const SERVER_NO_RESPONSE  = "2.2.2.2"; // server that does not respond to a dns request
 
 class DeviceTestCase extends ImpTestCase {
 
@@ -43,10 +43,10 @@ class DeviceTestCase extends ImpTestCase {
     //  Static Cases
     // /////////////////////////////////////////////////////////////////////////
 
-    // asserting that the function QuestionName correctly turns a url string
-    // into the required format of a url for a dns request
+    // asserting that the function QuestionName correctly turns a hostname string
+    // into the required format of a hostname for a dns request
     function testQuestionName() {
-        // note this is specific to the URL_STRING
+        // note this is specific to the HOST_NAME_A
         // follow
         local expectedArray = [
             { "k": "QN0", "s": 1, "v": 3 },
@@ -57,12 +57,13 @@ class DeviceTestCase extends ImpTestCase {
             { "k": "QN5", "s": 3, "v": "com" },
             { "k": "QN6", "s": 1, "v": 0 }
         ]
-        local actualArray = _dns._questionName(URL_CLASS_A);
+        local actualArray = _dns._questionName(HOST_NAME_A);
         this.assertDeepEqual(expectedArray, actualArray);
     }
 
     // make a number of fake pack then check that the functions in
     // parsePacket perform as expected
+    // packets contain ipv4 addresses
     function testIPchecker() {
         _dns._ipCount = 1;
         local check;
@@ -94,6 +95,7 @@ class DeviceTestCase extends ImpTestCase {
 
     }
     // tests the _checkport function
+    // contains port number and expected non important info that function takes and discards
     function testPort() {
         local check;
         local testPass = _dns._makePacket([
@@ -120,6 +122,7 @@ class DeviceTestCase extends ImpTestCase {
     }
 
     // checks the process id
+    // packet has process id
     function testProcessId() {
         local check;
         _dns._generateProcessId();
@@ -144,7 +147,7 @@ class DeviceTestCase extends ImpTestCase {
         this.assertTrue(check == W5500_DNS_ERR_PRCID, check);
 
     }
-
+    // tests the _checkflags function
     function testFlags() {
         local check;
         local url = "nothing";
@@ -179,7 +182,7 @@ class DeviceTestCase extends ImpTestCase {
     // checks for both a timeout to an unresponsive dns server
     // moves to the next server
     // tests a record returns an ip address
-    function testTimeout() {
+    function testTimeout () {
         _wiz.configureNetworkSettings(SOURCE_IP, SUBNET_MASK, GATEWAY_IP);
         local dns = W5500.DNS(_wiz);
         dns._dnsIpAddr = [
@@ -189,7 +192,7 @@ class DeviceTestCase extends ImpTestCase {
             "208.67.220.220"]
 
         return Promise(function(resolve, reject) {
-            dns.dnsResolve(URL_CLASS_A, function(err, data) {
+            dns.dnsResolve(HOST_NAME_A, function(err, data) {
                 // first ip address failed moved to the next 1
                 this.assertTrue(dns._ipCount == 1, "ipcoutn is "+ dns._ipCount);
                 // check that there is an ip address entered
@@ -207,7 +210,7 @@ class DeviceTestCase extends ImpTestCase {
         _wiz.configureNetworkSettings(SOURCE_IP, SUBNET_MASK, GATEWAY_IP);
         local dns = W5500.DNS(_wiz);
         return Promise(function(resolve, reject) {
-            dns.dnsResolve(URL_CLASS_CNAME, function(err, data) {
+            dns.dnsResolve(HOST_NAME_CNAME, function(err, data) {
 
                 // check that connected to first dns server
                 this.assertTrue(dns._ipCount == 0);
@@ -223,7 +226,7 @@ class DeviceTestCase extends ImpTestCase {
     }
 
     // test for a hostName that does not resolve to a ip address
-    function testDomainNotExist () {
+    function testDomainNotExist() {
         _wiz.configureNetworkSettings(SOURCE_IP, SUBNET_MASK, GATEWAY_IP);
         local dns = W5500.DNS(_wiz);
         return Promise(function(resolve, reject) {
@@ -235,7 +238,25 @@ class DeviceTestCase extends ImpTestCase {
 
     }
 
+    // test for a hostName that will return multiple A records
+    function TestMultipleA() {
+        _wiz.configureNetworkSettings(SOURCE_IP, SUBNET_MASK, GATEWAY_IP);
+        local dns = W5500.DNS(_wiz);
+        return Promise(function(resolve, reject) {
+            dns.dnsResolve(HOST_NAME_MULT_A, function(err, data) {
 
+                // check that connected to first dns server
+                this.assertTrue(dns._ipCount == 0, "dns server contacted "+ dns._ipCount);
+                // check that there is an ip address entered
+                for (local i = 0; i < data.len(); i++) {
+                    this.assertTrue(data[i].v != null);
+                }
+                this.assertTrue (data.len() == 4, "the actual length "+ data.len())
+                resolve();
+            }.bindenv(this));
+        }.bindenv(this));
+
+    }
 
 
 
