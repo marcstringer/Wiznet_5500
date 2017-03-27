@@ -12,24 +12,34 @@ enabling the W5500.DNS to utilise W5500 functionality.
 
 ## Class Methods
 
-### dnsResolve(*url, cb*)
-This function performs a dns request for the given url. The returned ip address is passed into the callback.
+### dnsResolve(*hostname, cb*)
+This function performs a dns request for the given hostname. The returned ip addresses are passed into the callback.
+The IP addresses are stored as arrays in key value pairs  
 
 | Key | Data Type |Required | Default Value |Description |
 |----|------------|---------|--------------|------------|
-|url|String|Yes|N/A|a url address i.e "www.google.com"|
+|hostname|String|Yes|N/A|a hostname i.e "www.google.com"|
 |cb|function|Yes|N/A| A callback function that is passed an error message or a table of received ip addresses|
 
-#### Example Code:
-```squirrel
-    local url = "www.google.com" ;
-    // where wiz is configured W5500 object (see W5500.device.nut for an example)
-    query <- W5500.DNS(wiz);
-    query.dnsResolve(url);
-```
 
 #### Callback Arguments
 |Key |Data Type|Description|
 |-----|----|----|
 |error|string|An error message if there was a issue receiving the data or null if it was successful|
-|data|table|received IPV4 addresses stored in arrays within a table|
+|data|array|An array with a table per received IPV4 address. Within the table is a key value pair: the key indicating the order the ip address was received and the value which is an ipv4 address in an array |
+
+#### Example Code:
+```squirrel
+    local hostname = "www.google.com" ;
+    // where wiz is configured W5500 object (see W5500.device.nut for an example)
+    query <- W5500.DNS(wiz);
+    query.dnsResolve(hostname, function(error, data) {
+            if (error) {
+                throw error;
+            }
+            else {
+                // retrieve the first returned ip address 
+                local ip = data[0].v ;
+            }
+    });
+```
