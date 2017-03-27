@@ -6,7 +6,7 @@ const GATEWAY_IP = "192.168.201.1";
 
 const URL_CLASS_A = "www.google.com";
 const URL_CLASS_CNAME = "www.facebook.com";
-
+const HOST_NAME_NO_DNS = "www.facebook.com.www.facebook.com"
 // server that does not respond to a dns request
 const SERVER_NO_RESPONSE  = "2.2.2.2";
 
@@ -65,6 +65,7 @@ class DeviceTestCase extends ImpTestCase {
     // parsePacket perform as expected
     function testIPchecker() {
         _dns._ipCount = 1;
+        local check;
         local testPass = _dns._makePacket([
             { "k": "ip1", "s": 1, "v": 8 },
             { "k": "ip2", "s": 1, "v": 8 },
@@ -79,26 +80,24 @@ class DeviceTestCase extends ImpTestCase {
         ]);
 
         // test a pass case
-        try {
 
-            testPass.seek(0, 'b');
-            _dns._checkIP(testPass);
-        } catch (err) {
-            this.assertTrue(false, err);
-        }
+        testPass.seek(0, 'b');
+        check = _dns._checkIP(testPass);
+
+        this.assertTrue(check == null, check);
+
         // test a failing case
-        try {
-            testFail.seek(0, 'b');
-            _dns._checkIP(testFail)
-        } catch (err) {
-            this.assertTrue(err == "error: incorrect ip address received", err);
-        }
+        testFail.seek(0, 'b');
+        check = _dns._checkIP(testFail);
+        this.assertTrue(check == W5500_DNS_ERR_IP, check);
+
 
     }
 
     function testPort() {
+        local check;
         local testPass = _dns._makePacket([
-            { "k": "ip1", "s": 1, "v": 8 },
+            { "k": "ip1", "s": 1, "v": 0 },
             { "k": "ip2", "s": 1, "v": 53 },
             { "k": "ip3", "s": 1, "v": 1 },
             { "k": "ip4", "s": 1, "v": 1 },
@@ -109,22 +108,19 @@ class DeviceTestCase extends ImpTestCase {
             { "k": "ip3", "s": 1, "v": 1 },
             { "k": "ip4", "s": 1, "v": 1 },
         ]);
+        // pass case
+        testPass.seek(0, 'b');
+        check = _dns._checkPort(testPass);
+        this.assertTrue(check == null, check);
 
-        try {
-            testPass.seek(0, 'b');
-            _dns._checkPort(testPass)
-        } catch (err) {
-            this.assertTrue(false);
-        }
-        try {
-            testFail.seek(0, 'b');
-            _dns._checkPort(testFail)
-        } catch (err) {
-            this.assertTrue(err == "Invalid Port", err);
-        }
+        // fail case
+        testFail.seek(0, 'b');
+        check = _dns._checkPort(testFail);
+        this.assertTrue(check == W5500_DNS_ERR_PORT, check);
     }
 
     function testProcessId() {
+        local check;
         _dns._generateProcessId();
 
         local testPass = _dns._makePacket([
@@ -137,25 +133,20 @@ class DeviceTestCase extends ImpTestCase {
             { "k": "ip1", "s": 1, "v": 1 },
             { "k": "ip2", "s": 1, "v": 1 },
         ]);
+        // passing case
+        testPass.seek(0, 'b');
+        check = _dns._checkProcessID(testPass);
+        this.assertTrue(check == null, check);
+        // failing case
+        testFail.seek(0, 'b');
+        check = _dns._checkProcessID(testFail);
+        this.assertTrue(check == W5500_DNS_ERR_PRCID, check);
 
-        try {
-            testPass.seek(0, 'b');
-            _dns._checkProcessID(testPass)
-        } catch (err) {
-            this.assertTrue(false, err);
-        }
-
-        try {
-            testFail.seek(0, 'b');
-            _dns._checkProcessID(testFail)
-        } catch (err) {
-            server.log("the error is " + err);
-            this.assertTrue(err == "error: invalid process id received", err);
-        }
     }
 
     function testFlags() {
-        local url = "noting";
+        local check;
+        local url = "nothing";
         local cb = "nothing";
         local testNotResponse = _dns._makePacket([
             { "k": "ip1", "s": 1, "v": W5500_DNS_MSG_RCV + 1 },
@@ -166,20 +157,14 @@ class DeviceTestCase extends ImpTestCase {
             { "k": "ip1", "s": 1, "v": W5500_DNS_MSG_FRMAT_ERR }
         ]);
 
-        try {
-            testNotResponse.seek(0, 'b');
-            _dns._checkflags(testNotResponse, url, cb);
-        } catch (err) {
-            this.assertTrue(err == "error: response from the dns was not a dns response packet", err);
-        }
+        testNotResponse.seek(0, 'b');
+        check = _dns._checkflags(testNotResponse, url, cb);
+        this.assertTrue(check == W5500_DNS_ERR_DNS_RSPNSE, "first "+ check);
 
-        try {
-            testFormat.seek(0, 'b');
-            _dns._checkflags(testFormat, url, cb);
-        } catch (err) {
-            server.log("the error is " + err);
-            this.assertTrue(err == "error: message format sent is incorrect", err);
-        }
+        testFormat.seek(0, 'b');
+        check = _dns._checkflags(testFormat, url, cb);
+        this.assertTrue(check == W5500_DNS_ERR_FRMAT, "second "+ check);
+
     }
 
 
@@ -221,18 +206,33 @@ class DeviceTestCase extends ImpTestCase {
         _wiz.configureNetworkSettings(SOURCE_IP, SUBNET_MASK, GATEWAY_IP);
         local dns = W5500.DNS(_wiz);
         return Promise(function(resolve, reject) {
-            dns.dnsResolve(URL_CLASS_A, function(err, data) {
+            dns.dnsResolve(URL_CLASS_CNAME, function(err, data) {
 
                 // check that connected to first dns server
                 this.assertTrue(dns._ipCount == 0);
                 // check that there is an ip address entered
-                for (local i = 0; i < 4; i++) {
-                    this.assertTrue(data[0].v[i] != null);
+                for (local i = 0; i < data.len(); i++) {
+                    this.assertTrue(data[i].v != null);
                 }
 
                 resolve();
             }.bindenv(this));
         }.bindenv(this));
+
+    }
+
+    // test for a domain that does not resolve
+    function testDomainNotExist () {
+        _wiz.configureNetworkSettings(SOURCE_IP, SUBNET_MASK, GATEWAY_IP);
+        local dns = W5500.DNS(_wiz);
+        return Promise(function(resolve, reject) {
+            dns.dnsResolve(HOST_NAME_NO_DNS, function(err, data) {
+                this.assertTrue(err == W5500_DNS_ERR_DOMAIN, err);
+                resolve();
+            }.bindenv(this));
+        }.bindenv(this));
+
+
 
     }
 

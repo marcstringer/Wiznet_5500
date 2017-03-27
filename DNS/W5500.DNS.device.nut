@@ -120,7 +120,7 @@ class W5500.DNS {
     _retryCount = 0; // udp retry count
     _receivedDataFlag = false; // flag raised when data packet arrives
     _connection = null; // wiznet connection instance
-    _debug = 1; // displays logs
+    _debug = 0; // displays logs
     _waiting = null; // waiting for a response from the server
 
 
@@ -307,6 +307,8 @@ class W5500.DNS {
     /***************************************************************************
      *  _checkIP
      *  Returns:
+     *      null - if no error
+     *      errorMsg - if there is an issue with the check returns an error message
      *  Parameters:
      *      packet - blob received from the dns server
      ***************************************************************************/
@@ -326,14 +328,17 @@ class W5500.DNS {
         //local ipNum = "ip" + _ipCount.tostring();
         for (local i = 0; i < 4; i++) {
             if (packet.readn('b') != ip[i]) {
-                throw W5500_DNS_ERR_IP;
+                return W5500_DNS_ERR_IP;
             }
         }
+        return null;
     }
 
     /***************************************************************************
      *  _checkPort
      *  Returns:
+     *      null - if no error
+     *      errorMsg - if there is an issue with the check returns an error message
      *  Parameters:
      *      packet - blob received from the dns server
      ***************************************************************************/
@@ -344,15 +349,17 @@ class W5500.DNS {
         local port = packet.readn('b');
         if (port == W5500_DNS_PORT) {
             packet.seek(2, 'c');
+            return null ;
         } else {
-            throw W5500_DNS_ERR_PORT;
+            return W5500_DNS_ERR_PORT;
         }
-
     }
 
     /***************************************************************************
      *  _checkProcessID
      *  Returns:
+     *      null - if no error
+     *      errorMsg - if there is an issue with the check returns an error message
      *  Parameters:
      *      packet - blob received from the dns server
      ***************************************************************************/
@@ -364,8 +371,11 @@ class W5500.DNS {
             server.log ("return id packet " + p1 + p2 );
             server.log ("generated packet " + _prcid1  + _prcid2);
         }
-        if ((p1 == _prcid1) && (p2 == _prcid2)) {} else {
-            throw W5500_DNS_ERR_PRCID;
+        if ((p1 == _prcid1) && (p2 == _prcid2)) {
+            return null;
+        }
+        else {
+            return W5500_DNS_ERR_PRCID;
         }
 
     }
@@ -373,8 +383,10 @@ class W5500.DNS {
     /***************************************************************************
      *  _checkflags
      *  Returns:
+     *      null - if no error
+     *      errorMsg - if there is an issue with the check returns an error message
      *  Parameters:
-     *      packet -blob received from the dns server
+     *      packet - blob received from the dns server
      *      hostName -   a string containing a hostName address
      *      cb -    a callback function to be called once received packet is unpacked
      *              connection - the instance of the connection
@@ -387,36 +399,45 @@ class W5500.DNS {
         local flagsErrors = packet.readn('b');
 
         if (flagsRec != W5500_DNS_MSG_RCV) {
-            throw W5500_DNS_ERR_DNS_RSPNSE;
+            return W5500_DNS_ERR_DNS_RSPNSE;
         }
 
-        if (flagsErrors != W5500_DNS_MSG_NO_ERR) {
+        else if (flagsErrors != W5500_DNS_MSG_NO_ERR) {
             if (flagsErrors == W5500_DNS_MSG_FRMAT_ERR) {
-                throw W5500_DNS_ERR_FRMAT;
-            } else if (flagsErrors == (W5500_DNS_MSG_SRVR_ERR || W5500_DNS_MSG_QUERY_NOT_SUPPORTD || W5500_DNS_MSG_SERVER_REFUSED)) {
+                return W5500_DNS_ERR_FRMAT;
+            }
+            else if (flagsErrors == (W5500_DNS_MSG_SRVR_ERR || W5500_DNS_MSG_QUERY_NOT_SUPPORTD || W5500_DNS_MSG_SERVER_REFUSED)) {
                 // retry with a different dns server
                 _dnsServerChange(hostName, cb);
-            } else if (flagsErrors == W5500_DNS_MSG_DMAIN_NOT_EXIST_ERR) {
-                throw W5500_DNS_ERR_DOMAIN;
-            } else {
-                throw W5500_DNS_ERR_UNEXP;
             }
+            else if (flagsErrors == W5500_DNS_MSG_DMAIN_NOT_EXIST_ERR) {
+                return W5500_DNS_ERR_DOMAIN;
+            }
+            else {
+                return W5500_DNS_ERR_UNEXP;
+            }
+        }
+        else {
+            return null;
         }
 
     }
 
     /***************************************************************************
-     *  _numberQs
+     *  _checkNumberQs
      *  Returns:
      *      numberOfQuestions - number of question the dns server received
      *  Parameters:
      *      packet - blob received from the dns server
      ***************************************************************************/
     // Number of Questions that the the dns server has received
-    function _numberQs(packet) {
+    function _checkNumberQs(packet) {
         packet.seek(W5500_DNS_1_BYTE, 'c');
         if (packet.readn('b') != 1) {
-            throw W5500_DNS_ERR_QS;
+            return W5500_DNS_ERR_QS;
+        }
+        else {
+            return null
         }
     }
 
@@ -437,27 +458,38 @@ class W5500.DNS {
     /***************************************************************************
      *  _checkAuthority
      *  Returns:
+     *      null - if no error
+     *      errorMsg - if there is an issue with the check returns an error message
      *  Parameters:
      *      packet - blob received from the dns server
      ***************************************************************************/
     // Checks that the correct number of authority resources were received
     function _checkAuthority(packet) {
         if (packet.readn('w') != 0) {
-            throw W5500_DNS_ERR_AUT_RESRCS;
+            return W5500_DNS_ERR_AUT_RESRCS;
         }
+        else {
+            return null;
+        }
+
 
     }
 
     /***************************************************************************
      *  _checkAdditionalResources
      *  Returns:
+     *      null - if no error
+     *      errorMsg - if there is an issue with the check returns an error message
      *  Parameters:
      *      packet - blob received from the dns server
      ***************************************************************************/
     // Checks that the correct number of additional resources were received
     function _checkAdditionalResources(packet) {
         if (packet.readn('w') != 0) {
-            throw W5500_DNS_ERR_ADDRESRCS;
+            return W5500_DNS_ERR_ADDRESRCS;
+        }
+        else {
+            return null;
         }
 
     }
@@ -465,6 +497,8 @@ class W5500.DNS {
     /***************************************************************************
      *  _checkIPV4
      *  Returns:
+     *      null - if no error
+     *      errorMsg - if there is an issue with the check returns an error message
      *  Parameters:
      *      packet - blob received from the dns server
      ***************************************************************************/
@@ -473,13 +507,18 @@ class W5500.DNS {
         packet.seek(W5500_DNS_1_BYTE, 'c');
         local byte = packet.readn('b');
         if (byte != 1) {
-            throw W5500_DNS_ERR_NOT_IPV4;
+            return W5500_DNS_ERR_NOT_IPV4;
+        }
+        else {
+            return null;
         }
     }
 
     /***************************************************************************
      *  _checkInternet
      *  Returns:
+     *      null - if no error
+     *      errorMsg - if there is an issue with the check returns an error message
      *  Parameters:
      *      packet - blob received from the dns server
      ***************************************************************************/
@@ -488,13 +527,18 @@ class W5500.DNS {
         packet.seek(W5500_DNS_1_BYTE, 'c');
         local byte = packet.readn('b');
         if (byte != 1) {
-            throw W5500_DNS_ERR_NOT_INET;
+            return W5500_DNS_ERR_NOT_INET;
+        }
+        else {
+            return null;
         }
     }
 
     /***************************************************************************
      *  _checkName
      *  Returns:
+     *      null - if no error
+     *      errorMsg - if there is an issue with the check returns an error message
      *  Parameters:
      *      packet - blob received from the dns server
      ***************************************************************************/
@@ -503,7 +547,10 @@ class W5500.DNS {
         local p1 = packet.readn('b');
         local p2 = packet.readn('b');
         if ((p1 != W5500_DNS_NAME1) && (p2 != W5500_DNS_NAME2)) {
-            throw W5500_DNS_ERR_NO_NAME;
+            return W5500_DNS_ERR_NO_NAME;
+        }
+        else {
+            return null;
         }
 
     }
@@ -567,10 +614,13 @@ class W5500.DNS {
         return array;
     }
 
+
+
     /***************************************************************************
      *  _parsePacket
      *  Returns:
-     *      ip - an array which contains the ip address
+     *      arrayIP - an array which contains the ip address
+     *      errorMsg - error msg in event of un successful dns query
      *  Parameters:
      *      packet - blob received from the dns server
      *      hostNameR - hostName in string form
@@ -583,30 +633,70 @@ class W5500.DNS {
         local arrayIP = []; // array of ip addresses
         local idNum = 0; // id number used for the key of the returned ip address
         local currentRecord = null;
+        local check;
         // blob pointer at start of blob
         packet.seek(0, 'b');
 
         // perform various data checks break up data
         // check the message header
-        _checkIP(packet);
-        _checkPort(packet);
+        check = _checkIP(packet);
+        if (typeof(check) == "string") {
+            return check ;
+        }
+        check = _checkPort(packet);
+        if (typeof(check) == "string") {
+            return check ;
+        }
         _checkProcessID(packet);
-        _checkflags(packet, hostNameR, cbR);
-        _numberQs(packet);
+        if (typeof(check) == "string") {
+            return check ;
+        }
+        check = _checkflags(packet, hostNameR, cbR);
+        if (typeof(check) == "string") {
+            return check ;
+        }
+        check = _checkNumberQs(packet);
+        if (typeof(check) == "string") {
+            return check ;
+        }
+
         local numAns = _numberAns(packet);
+
         _checkAuthority(packet);
-        _checkAdditionalResources(packet);
+        if (typeof(check) == "string") {
+            return check ;
+        }
+
+        check = _checkAdditionalResources(packet);
+        if (typeof(check) == "string") {
+            return check ;
+        }
+
         local hostName = packet.readstring(_hostNameLength)
-        _checkIPV4(packet);
-        _checkInternet(packet);
+
+        check = _checkIPV4(packet);
+        if (typeof(check) == "string") {
+            return check ;
+        }
+
+        check = _checkInternet(packet);
+        if (typeof(check) == "string") {
+            return check ;
+        }
 
         // unpack the answer section
-        _checkName(packet);
+        check = _checkName(packet);
+        if (typeof(check) == "string") {
+            return check ;
+        }
         local initialRecord = _checkRecord(packet);
 
         // if it is a type A answer
         if (initialRecord == 1) {
-            _checkInternet(packet);
+            check = _checkInternet(packet);
+            if (typeof(check) == "string") {
+                return check ;
+            }
             _TTL = _getTTL(packet);
             local answerLength = _lengthAnswer(packet);
             local ip = _ipAddress(packet, answerLength);
@@ -628,7 +718,11 @@ class W5500.DNS {
                     packet.seek(2, 'c');
                     currentRecord = _checkRecord(packet);
                 }
-                _checkInternet(packet);
+                check = _checkInternet(packet);
+                if (typeof(check) == "string") {
+                    return check ;
+                }
+
                 _TTL = _getTTL(packet);
                 local answerLength = _lengthAnswer(packet);
                 if (_debug) { server.log("answer length" + answerLength)};
@@ -766,7 +860,14 @@ class W5500.DNS {
                 IPArray = _parsePacket(data, hostName, cb);
                 _connection.close( function () {
                     _connection = null;
-                    cb(null, IPArray);
+                    // check for error messages
+                    if (typeof(IPArray) == "string") {
+                        cb(IPArray, null);
+                    }
+                    else {
+                        cb(null, IPArray);
+                    }
+
                 }.bindenv(this));
             }
         }.bindenv(this);
