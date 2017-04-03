@@ -24,10 +24,7 @@
 // ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-// process id
-// 2 bytes
-const W5500_DNS_PRCID1 = 0x11;
-const W5500_DNS_PRCID2 = 0x11;
+
 
 // Flags
 // The following bytes declare a message where opcode = standard, message not truncated
@@ -37,43 +34,43 @@ const W5500_DNS_FLAGS2 = 0x00;
 
 // Number of Questions
 // 2 bytes
-const W5500_DNS_NOFQ1 = 0x00;
-const W5500_DNS_NOFQ2 = 0x01;
+const W5500_DNS_NUMBER_OF_QUESTIONS_1 = 0x00;
+const W5500_DNS_NUMBER_OF_QUESTIONS_2 = 0x01;
 // Number of Answers not relevant to a query (always set to 0 in query)
 // 2 bytes
-const W5500_DNS_NOFA1 = 0x00;
-const W5500_DNS_NOFA2 = 0X00;
+const W5500_DNS_NUMBER_OF_ANSWERS_1 = 0x00;
+const W5500_DNS_NUMBER_OF_ANSWERS_2 = 0X00;
 
 // Number of Authority Resource Record count (always set to 0 in query)
 // 2 bytes
-const W5500_DNS_AURR1 = 0x00;
-const W5500_DNS_AURR2 = 0x00;
+const W5500_DNS_NUMBER_OF_AUTHORITY_RESOURCES_1 = 0x00;
+const W5500_DNS_NUMBER_OF_AUTHORITY_RESOURCES_2 = 0x00;
 
 // Number of additional resource records in the DNS message (always set to 0 in query)
-const W5500_DNS_ADRR1 = 0x00;
-const W5500_DNS_ADRR2 = 0x00;
+const W5500_DNS_NUMBER_OF_ADDITIONAL_RESOURCES_1 = 0x00;
+const W5500_DNS_NUMBER_OF_ADDITIONAL_RESOURCES_2 = 0x00;
 
 // Question section
 // Question type A which means return a IPv4 record
-const W5500_DNS_QTYPE1 = 0x00;
-const W5500_DNS_QTYPE2 = 0x01
+const W5500_DNS_QUESTION_TYPE_1 = 0x00;
+const W5500_DNS_QUESTION_TYPE_2 = 0x01
 
 // question class internet
-const W5500_DNS_QCLASS1 = 0x00;
-const W5500_DNS_QCLASS2 = 0x01;
+const W5500_DNS_QUESTION_CLASS_1 = 0x00;
+const W5500_DNS_QUESTION_CLASS_2 = 0x01;
 
 // number of bytes needed for a number
-const W5500_DNS_NUM_BYTES_INT = 1;
+const W5500_DNS_NUMBER_OF_BYTES_INT = 1;
 
 // expected packet response
 // expected flags
-const W5500_DNS_MSG_RCV = 0X81; // indicates response from the dns server is a response to a dns query
+const W5500_DNS_MSG_RECEIVE = 0X81; // indicates response from the dns server is a response to a dns query
 
 // DNS SERVER RESPONSE ERROR CODES
 const W5500_DNS_MSG_NO_ERR = 0x80; // no errors received
-const W5500_DNS_MSG_FRMAT_ERR = 0x81; // formatting error
-const W5500_DNS_MSG_SRVR_ERR = 0x82; // server error
-const W5500_DNS_MSG_DMAIN_NOT_EXIST_ERR = 0x83; // domain name does not exist
+const W5500_DNS_MSG_FORMAT_ERR = 0x81; // formatting error
+const W5500_DNS_MSG_SERVER_ERR = 0x82; // server error
+const W5500_DNS_MSG_DOMAIN_DOES_NOT_EXIST_ERR = 0x83; // domain name does not exist
 const W5500_DNS_MSG_QUERY_NOT_SUPPORTD = 0x84; // the query type is not supported by the dns server
 const W5500_DNS_MSG_SERVER_REFUSED = 0x85; // server refused the request
 
@@ -81,29 +78,29 @@ const W5500_DNS_MSG_SERVER_REFUSED = 0x85; // server refused the request
 const W5500_DNS_NAME1 = 0xc0; // initial name bytes
 const W5500_DNS_NAME2 = 0x0c;
 const W5500_DNS_PORT = 53; // port used for dns requests
-const W5500_DNS_A = 1; // represents an A record type
-const W5500_DNS_CNAME = 5; // represents a CNAME record type
+const W5500_DNS_RECORD_TYPE_A = 1; // represents an A record type
+const W5500_DNS_RECORD_TYPE_CNAME = 5; // represents a CNAME record type
 const W5500_DNS_1_BYTE = 1; // represents 1 byte
 const W5500_DNS_2_BYTE = 2; // represents 2 bytes
-const W5500_DNS_NUM_IN_IPV4 = 4; // number of numbers in a ipv4 address
-const W5500_DNS_NUM_RTRY_UDP = 2; // number of times to retry a dns server before switching
+const W5500_DNS_NUMBER_OF_TIMES_TO_RETRY_UDP = 2; // number of times to retry a dns server before switching
 
 // ERROR messages
-const W5500_DNS_ERR_PRCID = "error: invalid process id received" ;
+const W5500_DNS_ERR_PROCESS_ID = "error: invalid process id received" ;
 const W5500_DNS_ERR_IP = "error: incorrect ip address received";
 const W5500_DNS_ERR_PORT = "Invalid Port";
-const W5500_DNS_ERR_DNS_RSPNSE = "error: response from the dns was not a dns response packet";
-const W5500_DNS_ERR_FRMAT = "error: message format sent is incorrect";
+const W5500_DNS_ERR_DNS_RESPONSE = "error: response from the dns was not a dns response packet";
+const W5500_DNS_ERR_FORMAT = "error: message format sent is incorrect";
 const W5500_DNS_ERR_DOMAIN = "error domain name referenced does not exist";
-const W5500_DNS_ERR_UNEXP = "error: unexpected error";
-const W5500_DNS_ERR_QS = "error: DNS response received incorrect number of questions";
-const W5500_DNS_ERR_AUT_RESRCS = "error: unexpected number of authority resources";
-const W5500_DNS_ERR_ADD_RSRCS = "error: unexpected number of additional resources";
+const W5500_DNS_ERR_UNEXPECTED = "error: unexpected error";
+const W5500_DNS_ERR_QUESTIONS = "error: DNS response received incorrect number of questions";
+const W5500_DNS_ERR_AUTHORITY_RESOURCES = "error: unexpected number of authority resources";
+const W5500_DNS_ERR_ADDITIONAL_RESOURCES = "error: unexpected number of additional resources";
 const W5500_DNS_ERR_NOT_IPV4 = "error: answer is not ipv4";
-const W5500_DNS_ERR_NOT_INET = "error: answer is not of the internet class";
-const W5500_DNS_ERR_NO_NAME = "error : DNS Name not present";
-const W5500_DNS_ERR_INVLID_RCORD = "error: invalid record type (only accept A or CNAME)";
+const W5500_DNS_ERR_NOT_INTERNET = "error: answer is not of the internet class";
+const W5500_DNS_ERR_NO_DNS_NAME = "error : DNS Name not present";
+const W5500_DNS_ERR_INVALID_RECORD = "error: invalid record type (only accept A or CNAME)";
 const W5500_DNS_ERR_OUT_OF_DNS_SERVERS = "Have run through all listed dns servers unable to retrieve ip";
+const W5500_DNS_IP_MUST_BE_A_STRING = "IP address must be a string";
 // =============================================================================
 // CLASS: W5500.DNS
 // =============================================================================
@@ -122,7 +119,7 @@ class W5500.DNS {
     _receivedDataFlag = null; // flag raised when data packet arrives
     _connection = null; // wiznet connection instance
     _debug = null; // displays logs
-    _waiting = null; // waiting for a response from the server
+    _waitingTimer = null; // waiting for a response from the server
     _dnsIpAddr = null; // array of ip addresses for dns servers
 
 
@@ -149,9 +146,7 @@ class W5500.DNS {
      //     array - an array of strings where the strings are ip addresses
     // =========================================================================
     //
-    function inputIpAddresses (array) {
-        _dnsIpAddr = array;
-    }
+
 
     // =========================================================================
      //  generateProcessId
@@ -257,25 +252,25 @@ class W5500.DNS {
     // assembles the array that will be made into a packet
     function _arrayAssembly(hostNameArray) {
 
-        local array = [{ "k": "id1", "s": W5500_DNS_NUM_BYTES_INT, "v": _prcid1 },
-            { "k": "id2", "s": W5500_DNS_NUM_BYTES_INT, "v": _prcid2 },
-            { "k": "flags1", "s": W5500_DNS_NUM_BYTES_INT, "v": W5500_DNS_FLAGS1 },
-            { "k": "flags2", "s": W5500_DNS_NUM_BYTES_INT, "v": W5500_DNS_FLAGS2 },
-            { "k": "NOFQ1", "s": W5500_DNS_NUM_BYTES_INT, "v": W5500_DNS_NOFQ1 },
-            { "k": "NOFQ2", "s": W5500_DNS_NUM_BYTES_INT, "v": W5500_DNS_NOFQ2 },
-            { "k": "NOFA1", "s": W5500_DNS_NUM_BYTES_INT, "v": W5500_DNS_NOFA1 },
-            { "k": "NOFA2", "s": W5500_DNS_NUM_BYTES_INT, "v": W5500_DNS_NOFA2 },
-            { "k": "NAUR1", "s": W5500_DNS_NUM_BYTES_INT, "v": W5500_DNS_AURR1 },
-            { "k": "NAUR2", "s": W5500_DNS_NUM_BYTES_INT, "v": W5500_DNS_AURR2 },
-            { "k": "NADR1", "s": W5500_DNS_NUM_BYTES_INT, "v": W5500_DNS_ADRR1 },
-            { "k": "NADR2", "s": W5500_DNS_NUM_BYTES_INT, "v": W5500_DNS_ADRR2 }
+        local array = [{ "k": "id1", "s": W5500_DNS_NUMBER_OF_BYTES_INT, "v": _prcid1 },
+            { "k": "id2", "s": W5500_DNS_NUMBER_OF_BYTES_INT, "v": _prcid2 },
+            { "k": "flags1", "s": W5500_DNS_NUMBER_OF_BYTES_INT, "v": W5500_DNS_FLAGS1 },
+            { "k": "flags2", "s": W5500_DNS_NUMBER_OF_BYTES_INT, "v": W5500_DNS_FLAGS2 },
+            { "k": "NOFQ1", "s": W5500_DNS_NUMBER_OF_BYTES_INT, "v": W5500_DNS_NUMBER_OF_QUESTIONS_1 },
+            { "k": "NOFQ2", "s": W5500_DNS_NUMBER_OF_BYTES_INT, "v": W5500_DNS_NUMBER_OF_QUESTIONS_2 },
+            { "k": "NOFA1", "s": W5500_DNS_NUMBER_OF_BYTES_INT, "v": W5500_DNS_NUMBER_OF_ANSWERS_1 },
+            { "k": "NOFA2", "s": W5500_DNS_NUMBER_OF_BYTES_INT, "v": W5500_DNS_NUMBER_OF_ANSWERS_2 },
+            { "k": "NAUR1", "s": W5500_DNS_NUMBER_OF_BYTES_INT, "v": W5500_DNS_NUMBER_OF_AUTHORITY_RESOURCES_1 },
+            { "k": "NAUR2", "s": W5500_DNS_NUMBER_OF_BYTES_INT, "v": W5500_DNS_NUMBER_OF_AUTHORITY_RESOURCES_2 },
+            { "k": "NADR1", "s": W5500_DNS_NUMBER_OF_BYTES_INT, "v": W5500_DNS_NUMBER_OF_ADDITIONAL_RESOURCES_1 },
+            { "k": "NADR2", "s": W5500_DNS_NUMBER_OF_BYTES_INT, "v": W5500_DNS_NUMBER_OF_ADDITIONAL_RESOURCES_2 }
         ];
 
         array.extend(hostNameArray);
-        array.extend([{ "k": "QTYP1", "s": W5500_DNS_NUM_BYTES_INT, "v": W5500_DNS_QTYPE1 },
-            { "k": "QTYP2", "s": W5500_DNS_NUM_BYTES_INT, "v": W5500_DNS_QTYPE2 },
-            { "k": "QCLS1", "s": W5500_DNS_NUM_BYTES_INT, "v": W5500_DNS_QCLASS1 },
-            { "k": "QCLS2", "s": W5500_DNS_NUM_BYTES_INT, "v": W5500_DNS_QCLASS2 }
+        array.extend([{ "k": "QTYP1", "s": W5500_DNS_NUMBER_OF_BYTES_INT, "v": W5500_DNS_QUESTION_TYPE_1 },
+            { "k": "QTYP2", "s": W5500_DNS_NUMBER_OF_BYTES_INT, "v": W5500_DNS_QUESTION_TYPE_2 },
+            { "k": "QCLS1", "s": W5500_DNS_NUMBER_OF_BYTES_INT, "v": W5500_DNS_QUESTION_CLASS_1 },
+            { "k": "QCLS2", "s": W5500_DNS_NUMBER_OF_BYTES_INT, "v": W5500_DNS_QUESTION_CLASS_2 }
         ]);
 
 
@@ -344,7 +339,7 @@ class W5500.DNS {
 
 
         //local ipNum = "ip" + _ipCount.tostring();
-        for (local i = 0; i < W5500_DNS_NUM_IN_IPV4; i++) {
+        for (local i = 0; i < ip.len(); i++) {
             if (packet.readn('b') != ip[i]) {
                 return W5500_DNS_ERR_IP;
             }
@@ -393,7 +388,7 @@ class W5500.DNS {
             return null;
         }
         else {
-            return W5500_DNS_ERR_PRCID;
+            return W5500_DNS_ERR_PROCESS_ID;
         }
 
     }
@@ -415,23 +410,23 @@ class W5500.DNS {
         local flagsRec = packet.readn('b');
         local flagsErrors = packet.readn('b');
 
-        if (flagsRec != W5500_DNS_MSG_RCV) {
-            return W5500_DNS_ERR_DNS_RSPNSE;
+        if (flagsRec != W5500_DNS_MSG_RECEIVE) {
+            return W5500_DNS_ERR_DNS_RESPONSE;
         }
 
         else if (flagsErrors != W5500_DNS_MSG_NO_ERR) {
-            if (flagsErrors == W5500_DNS_MSG_FRMAT_ERR) {
-                return W5500_DNS_ERR_FRMAT;
+            if (flagsErrors == W5500_DNS_MSG_FORMAT_ERR) {
+                return W5500_DNS_ERR_FORMAT;
             }
-            else if (flagsErrors == (W5500_DNS_MSG_SRVR_ERR || W5500_DNS_MSG_QUERY_NOT_SUPPORTD || W5500_DNS_MSG_SERVER_REFUSED)) {
+            else if (flagsErrors == (W5500_DNS_MSG_SERVER_ERR || W5500_DNS_MSG_QUERY_NOT_SUPPORTD || W5500_DNS_MSG_SERVER_REFUSED)) {
                 // retry with a different dns server
                 _dnsServerChange(hostName, cb);
             }
-            else if (flagsErrors == W5500_DNS_MSG_DMAIN_NOT_EXIST_ERR) {
+            else if (flagsErrors == W5500_DNS_MSG_DOMAIN_DOES_NOT_EXIST_ERR) {
                 return W5500_DNS_ERR_DOMAIN;
             }
             else {
-                return W5500_DNS_ERR_UNEXP;
+                return W5500_DNS_ERR_UNEXPECTED;
             }
         }
         else {
@@ -451,7 +446,7 @@ class W5500.DNS {
     function _checkNumberQs(packet) {
         packet.seek(W5500_DNS_1_BYTE, 'c');
         if (packet.readn('b') != 1) {
-            return W5500_DNS_ERR_QS;
+            return W5500_DNS_ERR_QUESTIONS;
         }
         else {
             return null
@@ -483,7 +478,7 @@ class W5500.DNS {
     // Checks that the correct number of authority resources were received
     function _checkAuthority(packet) {
         if (packet.readn('w') != 0) {
-            return W5500_DNS_ERR_AUT_RESRCS;
+            return W5500_DNS_ERR_AUTHORITY_RESOURCES;
         }
         else {
             return null;
@@ -503,7 +498,7 @@ class W5500.DNS {
     // Checks that the correct number of additional resources were received
     function _checkAdditionalResources(packet) {
         if (packet.readn('w') != 0) {
-            return W5500_DNS_ERR_ADDRESRCS;
+            return W5500_DNS_ERR_ADDITIONAL_RESOURCES;
         }
         else {
             return null;
@@ -544,7 +539,7 @@ class W5500.DNS {
         packet.seek(W5500_DNS_1_BYTE, 'c');
         local byte = packet.readn('b');
         if (byte != 1) {
-            return W5500_DNS_ERR_NOT_INET;
+            return W5500_DNS_ERR_NOT_INTERNET;
         }
         else {
             return null;
@@ -564,7 +559,7 @@ class W5500.DNS {
         local p1 = packet.readn('b');
         local p2 = packet.readn('b');
         if ((p1 != W5500_DNS_NAME1) && (p2 != W5500_DNS_NAME2)) {
-            return W5500_DNS_ERR_NO_NAME;
+            return W5500_DNS_ERR_NO_DNS_NAME;
         }
         else {
             return null;
@@ -650,13 +645,12 @@ class W5500.DNS {
         local arrayIP = []; // array of ip addresses
         local idNum = 0; // id number used for the key of the returned ip address
         local currentRecord = null;
-        local check;
         // blob pointer at start of blob
         packet.seek(0, 'b');
 
         // perform various data checks break up data
         // check the message header
-        check = _checkIP(packet);
+        local check = _checkIP(packet);
         if (typeof(check) == "string") {
             return check ;
         }
@@ -727,7 +721,7 @@ class W5500.DNS {
         }
 
         // if it is a CNAME answer
-        else if (initialRecord == W5500_DNS_CNAME) {
+        else if (initialRecord == W5500_DNS_RECORD_TYPE_CNAME) {
             for (local cnt_i = 0; cnt_i < numAns; cnt_i++) {
                 // check name and record on subsequent loops
                 if (cnt_i > 0) {
@@ -744,7 +738,7 @@ class W5500.DNS {
                 if (_debug) { server.log("answer length" + answerLength)};
                 // if its a A record ip address we add it to the table of ip addresses
                 if (_debug) {server.log("current record is " + currentRecord)};
-                if (currentRecord == W5500_DNS_A) {
+                if (currentRecord == W5500_DNS_RECORD_TYPE_A) {
                     local ip = _ipAddress(packet, answerLength);
                     if(_debug) { server.log("ip address is "+ ip)};
                     ip = _arrayToString(ip);
@@ -761,7 +755,7 @@ class W5500.DNS {
             }
             return arrayIP;
         } else {
-            return W5500_DNS_ERR_INVLID_RCORD;
+            return W5500_DNS_ERR_INVALID_RECORD;
         }
 
     }
@@ -788,15 +782,16 @@ class W5500.DNS {
      //       cb - a callback function to be called once received packet is unpacked
      //       connection - the instance of the connection
     // =========================================================================
-    // handles re query back off if a server is non responsive
+    // handles queries being resent to same server. Backs off if a server is non responsive
     function _backOffHandler(hostName, connection, cb) {
 
         local timeToWait = math.pow(2, _retryCount + 1);
         if (_debug) { server.log("waiting for..." + timeToWait) };
-        _waiting = imp.wakeup(timeToWait, function() {
+        _waitingTimer = imp.wakeup(timeToWait, function() {
+            _waitingTimer = null;
             if (_receivedDataFlag == false) {
                 // may retry dns server several times
-                if (_retryCount >= W5500_DNS_NUM_RTRY_UDP) {
+                if (_retryCount >= W5500_DNS_NUMBER_OF_TIMES_TO_RETRY_UDP) {
                     _dnsServerChange(hostName, cb);
                     if (_debug) {server.log("error: failed to receive response from a dns server")};
 
@@ -862,7 +857,8 @@ class W5500.DNS {
 
         local receiveCb = function(err, data) {
             _receivedDataFlag = true;
-            imp.cancelwakeup(_waiting);
+            imp.cancelwakeup(_waitingTimer);
+            _waitingTimer = null;
             if (err) {
                 _connection.close( function () {
                     _connection = null;
@@ -895,7 +891,7 @@ class W5500.DNS {
                 if (_debug) {server.log("Connection failed " + err)};
                 _ipCount += 1;
                 dnsResolve(hostName, cb);
-            };
+            }
             else {
                 _connection = connection;
                 if (_debug) { server.log("connection est..") };

@@ -25,7 +25,7 @@ This function performs a dns request for the given hostname Returning IPV4 addre
 |Key |Data Type|Description|
 |-----|----|----|
 |error|string|An error message if there was a problem or null if successful.|
-|data|array|An array with a table per received IPV4 address. Within the table is a key value pair: the key which is a string indicating which ip address was received and the value which is an ipv4 address which is a string |
+|data|array|An array with a table per received IPV4 address. Within the table is a key value pair: data[i].k A key indicating the i^th ip address in the array which is a string. data[i].v the value of the i^th received IPV4 address which is a string |
 
 #### Example Code:
 ```squirrel
@@ -41,4 +41,19 @@ This function performs a dns request for the given hostname Returning IPV4 addre
                 local ip = data[0].v ;
             }
     });
+```
+### inputIpAddresses(*array*)
+This function is used to input the dns servers ip addresses that you want the dns request to go to.
+
+| Key | Data Type |Required | Default Value |Description |
+|----|------------|---------|--------------|------------|
+|hostname|array|Yes|N/A|an array of ip address strings e.g ["8.8.8.8", "8.8.4.4"] which are the ip addresses of google's public DNS servers |
+
+#### Example Code:
+```squirrel
+    local hostname = "www.google.com" ;
+    // where wiz is configured W5500 object (see W5500.device.nut for an example)
+    query <- W5500.DNS(wiz);
+    query.inputIpAddresses(["8.8.8.8", "8.8.4.4"]);
+
 ```

@@ -8,7 +8,7 @@ const HOST_NAME_A = "www.google.com"; // single ipv4 from an A record
 const HOST_NAME_CNAME = "www.facebook.com"; // single ipv4 from a CNAME record
 const HOST_NAME_NO_DNS = "www.facebook.com.www.facebook.com"; // hostname that doesn't result in a
 const HOST_NAME_MULT_A = "www.reddit.com"; // hostname that produces multiple ipv4 addresses
-const SERVER_NO_RESPONSE  = "2.2.2.2"; // server that does not respond to a dns request
+const SERVER_NO_RESPONSE = "2.2.2.2"; // server that does not respond to a dns request
 
 class DeviceTestCase extends ImpTestCase {
 
@@ -144,7 +144,7 @@ class DeviceTestCase extends ImpTestCase {
         // failing case
         testFail.seek(0, 'b');
         check = _dns._checkProcessID(testFail);
-        this.assertTrue(check == W5500_DNS_ERR_PRCID, check);
+        this.assertTrue(check == W5500_DNS_ERR_PROCESS_ID, check);
 
     }
     // tests the _checkflags function
@@ -153,21 +153,21 @@ class DeviceTestCase extends ImpTestCase {
         local url = "nothing";
         local cb = "nothing";
         local testNotResponse = _dns._makePacket([
-            { "k": "ip1", "s": 1, "v": W5500_DNS_MSG_RCV + 1 },
-            { "k": "ip1", "s": 1, "v": W5500_DNS_MSG_RCV },
+            { "k": "ip1", "s": 1, "v": W5500_DNS_MSG_RECEIVE + 1 },
+            { "k": "ip1", "s": 1, "v": W5500_DNS_MSG_RECEIVE },
         ]);
         local testFormat = _dns._makePacket([
-            { "k": "ip1", "s": 1, "v": W5500_DNS_MSG_RCV },
-            { "k": "ip1", "s": 1, "v": W5500_DNS_MSG_FRMAT_ERR }
+            { "k": "ip1", "s": 1, "v": W5500_DNS_MSG_RECEIVE },
+            { "k": "ip1", "s": 1, "v": W5500_DNS_MSG_FORMAT_ERR }
         ]);
 
         testNotResponse.seek(0, 'b');
         check = _dns._checkflags(testNotResponse, url, cb);
-        this.assertTrue(check == W5500_DNS_ERR_DNS_RSPNSE, "first "+ check);
+        this.assertTrue(check == W5500_DNS_ERR_DNS_RESPONSE, "first " + check);
 
         testFormat.seek(0, 'b');
         check = _dns._checkflags(testFormat, url, cb);
-        this.assertTrue(check == W5500_DNS_ERR_FRMAT, "second "+ check);
+        this.assertTrue(check == W5500_DNS_ERR_FORMAT, "second " + check);
 
     }
 
@@ -182,21 +182,22 @@ class DeviceTestCase extends ImpTestCase {
     // checks for both a timeout to an unresponsive dns server
     // moves to the next server
     // tests a record returns an ip address
-    function testTimeout () {
+    function testTimeout() {
         _wiz.configureNetworkSettings(SOURCE_IP, SUBNET_MASK, GATEWAY_IP);
         local dns = W5500.DNS(_wiz);
         dns._dnsIpAddr = [
             SERVER_NO_RESPONSE,
             "8.8.4.4",
             "208.67.222.222",
-            "208.67.220.220"]
+            "208.67.220.220"
+        ]
 
         return Promise(function(resolve, reject) {
             dns.dnsResolve(HOST_NAME_A, function(err, data) {
 
                 try {
                     // first ip address failed moved to the next 1
-                    this.assertTrue(dns._ipCount == 1, "ipcoutn is "+ dns._ipCount);
+                    this.assertTrue(dns._ipCount == 1, "ipcoutn is " + dns._ipCount);
                     // check that there is an ip address entered
                     for (local i = 0; i < 4; i++) {
                         this.assertTrue(data[0].v[i] != null);
@@ -259,12 +260,12 @@ class DeviceTestCase extends ImpTestCase {
 
                 try {
                     // check that connected to first dns server
-                    this.assertTrue(dns._ipCount == 0, "dns server contacted "+ dns._ipCount);
+                    this.assertTrue(dns._ipCount == 0, "dns server contacted " + dns._ipCount);
                     // check that there is an ip address entered
                     for (local i = 0; i < data.len(); i++) {
                         this.assertTrue(data[i].v != null);
                     }
-                    this.assertTrue (data.len() == 4, "the actual length "+ data.len());
+                    this.assertTrue(data.len() == 4, "the actual length " + data.len());
                 } catch (e) {
                     return reject(e);
                 }
@@ -284,7 +285,7 @@ class DeviceTestCase extends ImpTestCase {
 
                 try {
                     // check that connected to first dns server
-                    this.assertTrue(dns._ipCount == 0, "dns server contacted "+ dns._ipCount);
+                    this.assertTrue(dns._ipCount == 0, "dns server contacted " + dns._ipCount);
                     // check that there is an ip address entered
                     for (local i = 0; i < data.len(); i++) {
                         this.assertTrue(data[i].v != null);
@@ -297,7 +298,7 @@ class DeviceTestCase extends ImpTestCase {
 
                     try {
                         // check that connected to first dns server
-                        this.assertTrue(dns._ipCount == 0, "dns server contacted "+ dns._ipCount);
+                        this.assertTrue(dns._ipCount == 0, "dns server contacted " + dns._ipCount);
                         // check that there is an ip address entered
                         for (local i = 0; i < data.len(); i++) {
                             this.assertTrue(data[i].v != null);
