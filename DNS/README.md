@@ -6,7 +6,7 @@ This library class enables Domain Name Service (*DNS*) functionality for the Wiz
 
 ## Class W5500.DNS
 
-### Constructor: W5500.DHCP(*wiz*)
+### Constructor: W5500.DNS(*wiz*)
 Instantiates a new W5500.DNS object and passes in a configured Wiznet object
 enabling the W5500.DNS to utilise W5500 functionality.
 
