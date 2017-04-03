@@ -1,4 +1,4 @@
-// static VERSION = "1.0.0";
+
 
 // MIT License
 //
@@ -80,7 +80,6 @@ const W5500_DNS_MSG_SERVER_REFUSED = 0x85; // server refused the request
 // VALUES
 const W5500_DNS_NAME1 = 0xc0; // initial name bytes
 const W5500_DNS_NAME2 = 0x0c;
-const W5500_DNS_NUM_DNS_SERVERS = 4; // number of dns servers
 const W5500_DNS_PORT = 53; // port used for dns requests
 const W5500_DNS_A = 1; // represents an A record type
 const W5500_DNS_CNAME = 5; // represents a CNAME record type
@@ -104,24 +103,25 @@ const W5500_DNS_ERR_NOT_IPV4 = "error: answer is not ipv4";
 const W5500_DNS_ERR_NOT_INET = "error: answer is not of the internet class";
 const W5500_DNS_ERR_NO_NAME = "error : DNS Name not present";
 const W5500_DNS_ERR_INVLID_RCORD = "error: invalid record type (only accept A or CNAME)";
-// ==============================================================================
+const W5500_DNS_ERR_OUT_OF_DNS_SERVERS = "Have run through all listed dns servers unable to retrieve ip";
+// =============================================================================
 // CLASS: W5500.DNS
-// ==============================================================================
+// =============================================================================
 
 class W5500.DNS {
-
+    static VERSION = "1.0.0";
     _hostName = null; // hostName which must be a string
     _wiz = null; // configured wiznet object
     _receivedData = null; // received data
     _hostNameLength = null; // length in bytes of the hostName packed
     _TTL = null; // time to to live of the IPv4 address
-    _ipCount = 0; // dns server ip index
+    _ipCount = null; // dns server ip index
     _prcid1 = null; // process id
     _prcid2 = null;
-    _retryCount = 0; // udp retry count
-    _receivedDataFlag = false; // flag raised when data packet arrives
+    _retryCount = null; // udp retry count
+    _receivedDataFlag = null; // flag raised when data packet arrives
     _connection = null; // wiznet connection instance
-    _debug = 1; // displays logs
+    _debug = null; // displays logs
     _waiting = null; // waiting for a response from the server
 
 
@@ -134,13 +134,18 @@ class W5500.DNS {
     ]
     constructor(wiznet) {
         _wiz = wiznet;
+        _ipCount = 0;
+        _retryCount = 0;
+        _receivedDataFlag = false;
+        _debug = 0;
+
     }
 
-    /***************************************************************************
-     *  generateProcessId
-     *  Returns:
-     *  Parameters:
-     ***************************************************************************/
+    // =========================================================================
+     //  generateProcessId
+     //  Returns:
+     //  Parameters:
+    // =========================================================================
     // generates process ids for the dns request
     // the id is set to variable within the class
     function _generateProcessId() {
@@ -152,14 +157,14 @@ class W5500.DNS {
         _prcid2 = roll2.tointeger();
     }
 
-    /***************************************************************************
-     *  questionName
-     *  Returns:
-     *      arrayElements - an array of Elements that containing a hostName broken down
-     *                      into the appropriate format for a dns request
-     *  Parameters:
-     *      hostName - a string representation of a hostName
-     ***************************************************************************/
+    // =========================================================================
+     //  questionName
+     //  Returns:
+     //      arrayElements - an array of Elements that containing a hostName broken down
+     //                      into the appropriate format for a dns request
+     //  Parameters:
+     //      hostName - a string representation of a hostName
+     // ========================================================================
     // Converts the hostName into the required format for the dns query
     function _questionName(hostName) {
         local strI = 0; // string index
@@ -229,14 +234,14 @@ class W5500.DNS {
         return arrayElements;
     }
 
-    /***************************************************************************
-     *  _arrayAssembly
-     *  Returns:
-     *      array - an array of Elements that will make up the packet to be sent
-     *              to the dns server
-     *  Parameters:
-     *      hostNameArray - the formatted hostName to be sent to the dns
-     ***************************************************************************/
+    // =========================================================================
+     //  _arrayAssembly
+     //  Returns:
+     //      array - an array of Elements that will make up the packet to be sent
+     //              to the dns server
+     //  Parameters:
+     //      hostNameArray - the formatted hostName to be sent to the dns
+    // =========================================================================
     // assembles the array that will be made into a packet
     function _arrayAssembly(hostNameArray) {
 
@@ -266,14 +271,14 @@ class W5500.DNS {
 
     }
 
-    /***************************************************************************
-     *  _makePacket
-     *  Returns:
-     *     _outputPacket - a blob consisting of the data to be sent to the dns
-     *                      server
-     *  Parameters:
-     *      structure - an array of data to be sent to a dns server
-     ***************************************************************************/
+    // =========================================================================
+     //  _makePacket
+     //  Returns:
+     //     _outputPacket - a blob consisting of the data to be sent to the dns
+     //                      server
+     //  Parameters:
+     //      structure - an array of data to be sent to a dns server
+    // =========================================================================
     // makes a packet (blob) which is transmittable
     function _makePacket(structure) {
         local _packetSize = 0;
@@ -305,14 +310,14 @@ class W5500.DNS {
         return _outputPacket;
     }
 
-    /***************************************************************************
-     *  _checkIP
-     *  Returns:
-     *      null - if no error
-     *      errorMsg - if there is an issue with the check returns an error message
-     *  Parameters:
-     *      packet - blob received from the dns server
-     ***************************************************************************/
+    // =========================================================================
+     //  _checkIP
+     //  Returns:
+     //      null - if no error
+     //      errorMsg - if there is an issue with the check returns an error message
+     //  Parameters:
+     //      packet - blob received from the dns server
+    // =========================================================================
     // check it was the right ip address that was sent to
     function _checkIP(packet) {
         local ip = null;
@@ -335,14 +340,14 @@ class W5500.DNS {
         return null;
     }
 
-    /***************************************************************************
-     *  _checkPort
-     *  Returns:
-     *      null - if no error
-     *      errorMsg - if there is an issue with the check returns an error message
-     *  Parameters:
-     *      packet - blob received from the dns server
-     ***************************************************************************/
+    // =========================================================================
+     //  _checkPort
+     //  Returns:
+     //      null - if no error
+     //      errorMsg - if there is an issue with the check returns an error message
+     //  Parameters:
+     //      packet - blob received from the dns server
+    // =========================================================================
     // check that packet was returned on the correct port
     function _checkPort(packet) {
         // discard an unimportant byte
@@ -356,14 +361,14 @@ class W5500.DNS {
         }
     }
 
-    /***************************************************************************
-     *  _checkProcessID
-     *  Returns:
-     *      null - if no error
-     *      errorMsg - if there is an issue with the check returns an error message
-     *  Parameters:
-     *      packet - blob received from the dns server
-     ***************************************************************************/
+    // =========================================================================
+     //  _checkProcessID
+     //  Returns:
+     //      null - if no error
+     //      errorMsg - if there is an issue with the check returns an error message
+     //  Parameters:
+     //      packet - blob received from the dns server
+    // =========================================================================
     // check that the process id is the same one that we sent
     function _checkProcessID(packet) {
         local p1 = packet.readn('b');
@@ -381,18 +386,17 @@ class W5500.DNS {
 
     }
 
-    /***************************************************************************
-     *  _checkflags
-     *  Returns:
-     *      null - if no error
-     *      errorMsg - if there is an issue with the check returns an error message
-     *  Parameters:
-     *      packet - blob received from the dns server
-     *      hostName -   a string containing a hostName address
-     *      cb -    a callback function to be called once received packet is unpacked
-     *              connection - the instance of the connection
-
-     ***************************************************************************/
+    // =========================================================================
+     //  _checkflags
+     //  Returns:
+     //      null - if no error
+     //      errorMsg - if there is an issue with the check returns an error message
+     //  Parameters:
+     //      packet - blob received from the dns server
+     //      hostName -   a string containing a hostName address
+     //      cb -    a callback function to be called once received packet is unpacked
+     //              connection - the instance of the connection
+    // =========================================================================
     // check the flags for a message received
     // check the flags for any errors sent by the server
     function _checkflags(packet, hostName, cb) {
@@ -424,13 +428,13 @@ class W5500.DNS {
 
     }
 
-    /***************************************************************************
-     *  _checkNumberQs
-     *  Returns:
-     *      numberOfQuestions - number of question the dns server received
-     *  Parameters:
-     *      packet - blob received from the dns server
-     ***************************************************************************/
+    // =========================================================================
+     //  _checkNumberQs
+     //  Returns:
+     //      numberOfQuestions - number of question the dns server received
+     //  Parameters:
+     //      packet - blob received from the dns server
+    // =========================================================================
     // Number of Questions that the the dns server has received
     function _checkNumberQs(packet) {
         packet.seek(W5500_DNS_1_BYTE, 'c');
@@ -442,13 +446,13 @@ class W5500.DNS {
         }
     }
 
-    /***************************************************************************
-     *  _numberAns
-     *  Returns:
-     *      numberOfAnswers - number of answers the dns server has provided
-     *  Parameters:
-     *      packet - blob received from the dns server
-     ***************************************************************************/
+    // =========================================================================
+     //  _numberAns
+     //  Returns:
+     //      numberOfAnswers - number of answers the dns server has provided
+     //  Parameters:
+     //      packet - blob received from the dns server
+    // =========================================================================
     // Number of answers that the dns server has provided
     function _numberAns(packet) {
         packet.seek(W5500_DNS_1_BYTE, 'c');
@@ -456,14 +460,14 @@ class W5500.DNS {
         return numberOfAnswers;
     }
 
-    /***************************************************************************
-     *  _checkAuthority
-     *  Returns:
-     *      null - if no error
-     *      errorMsg - if there is an issue with the check returns an error message
-     *  Parameters:
-     *      packet - blob received from the dns server
-     ***************************************************************************/
+    // =========================================================================
+     //  _checkAuthority
+     //  Returns:
+     //      null - if no error
+     //      errorMsg - if there is an issue with the check returns an error message
+     //  Parameters:
+     //      packet - blob received from the dns server
+    // =========================================================================
     // Checks that the correct number of authority resources were received
     function _checkAuthority(packet) {
         if (packet.readn('w') != 0) {
@@ -476,14 +480,14 @@ class W5500.DNS {
 
     }
 
-    /***************************************************************************
-     *  _checkAdditionalResources
-     *  Returns:
-     *      null - if no error
-     *      errorMsg - if there is an issue with the check returns an error message
-     *  Parameters:
-     *      packet - blob received from the dns server
-     ***************************************************************************/
+    // =========================================================================
+     //  _checkAdditionalResources
+     //  Returns:
+     //      null - if no error
+     //      errorMsg - if there is an issue with the check returns an error message
+     //  Parameters:
+     //      packet - blob received from the dns server
+    // =========================================================================
     // Checks that the correct number of additional resources were received
     function _checkAdditionalResources(packet) {
         if (packet.readn('w') != 0) {
@@ -495,14 +499,14 @@ class W5500.DNS {
 
     }
 
-    /***************************************************************************
-     *  _checkIPV4
-     *  Returns:
-     *      null - if no error
-     *      errorMsg - if there is an issue with the check returns an error message
-     *  Parameters:
-     *      packet - blob received from the dns server
-     ***************************************************************************/
+    // =========================================================================
+     //  _checkIPV4
+     //  Returns:
+     //      null - if no error
+     //      errorMsg - if there is an issue with the check returns an error message
+     //  Parameters:
+     //      packet - blob received from the dns server
+    // =========================================================================
     // Checks that the dns server received to specify a IPv4 address
     function _checkIPV4(packet) {
         packet.seek(W5500_DNS_1_BYTE, 'c');
@@ -515,14 +519,14 @@ class W5500.DNS {
         }
     }
 
-    /***************************************************************************
-     *  _checkInternet
-     *  Returns:
-     *      null - if no error
-     *      errorMsg - if there is an issue with the check returns an error message
-     *  Parameters:
-     *      packet - blob received from the dns server
-     ***************************************************************************/
+    // =========================================================================
+     //  _checkInternet
+     //  Returns:
+     //      null - if no error
+     //      errorMsg - if there is an issue with the check returns an error message
+     //  Parameters:
+     //      packet - blob received from the dns server
+    // =========================================================================
     // Checks that the dns server received to specified the internet class
     function _checkInternet(packet) {
         packet.seek(W5500_DNS_1_BYTE, 'c');
@@ -535,14 +539,14 @@ class W5500.DNS {
         }
     }
 
-    /***************************************************************************
-     *  _checkName
-     *  Returns:
-     *      null - if no error
-     *      errorMsg - if there is an issue with the check returns an error message
-     *  Parameters:
-     *      packet - blob received from the dns server
-     ***************************************************************************/
+    // =========================================================================
+     //  _checkName
+     //  Returns:
+     //      null - if no error
+     //      errorMsg - if there is an issue with the check returns an error message
+     //  Parameters:
+     //      packet - blob received from the dns server
+    // =========================================================================
     // Checks that the Name indicator is in the correct place
     function _checkName(packet) {
         local p1 = packet.readn('b');
@@ -556,13 +560,13 @@ class W5500.DNS {
 
     }
 
-    /***************************************************************************
-     *  _checkRecord
-     *  Returns:
-     *      record - the type of answer the dns server has sent
-     *  Parameters:
-     *      packet - blob received from the dns server
-     ***************************************************************************/
+    // =========================================================================
+     //  _checkRecord
+     //  Returns:
+     //      record - the type of answer the dns server has sent
+     //  Parameters:
+     //      packet - blob received from the dns server
+    // =========================================================================
     // Checks what record the dns server has responded with
     function _checkRecord(packet) {
         packet.seek(W5500_DNS_1_BYTE, 'c');
@@ -570,28 +574,28 @@ class W5500.DNS {
         return record
     }
 
-    /***************************************************************************
-     *  _getTTL
-     *  Returns:
-     *      ttl - the time to live on the provided ip address i.e how long before
-     *            you need to renew it
-     *  Parameters:
-     *      packet - blob received from the dns server
-     ***************************************************************************/
+    // =========================================================================
+     //  _getTTL
+     //  Returns:
+     //      ttl - the time to live on the provided ip address i.e how long before
+     //            you need to renew it
+     //  Parameters:
+     //      packet - blob received from the dns server
+    // =========================================================================
     // Reads the ttl from the received packet
     function _getTTL(packet) {
         local ttl = packet.readn('i');
         return ttl;
     }
 
-    /***************************************************************************
-     *  _lengthAnswer
-     *  Returns:
-     *      length - the  number of bytes that the are used to represent the ip
-     *               address
-     *  Parameters:
-     *      packet - blob received from the dns server
-     ***************************************************************************/
+    // =========================================================================
+     //  _lengthAnswer
+     //  Returns:
+     //      length - the  number of bytes that the are used to represent the ip
+     //               address
+     //  Parameters:
+     //      packet - blob received from the dns server
+    // =========================================================================
     // Reads the number of bytes that are used to write the ip address
     function _lengthAnswer(packet) {
         packet.seek(W5500_DNS_1_BYTE, 'c');
@@ -599,13 +603,13 @@ class W5500.DNS {
         return length
     }
 
-    /***************************************************************************
-     *  _ipAddress
-     *  Returns:
-     *      array - an array consisting of 4 elements that make up an ip address
-     *  Parameters:
-     *      packet - blob received from the dns server
-     ***************************************************************************/
+    // =========================================================================
+     //  _ipAddress
+     //  Returns:
+     //      array - an array consisting of 4 elements that make up an ip address
+     //  Parameters:
+     //      packet - blob received from the dns server
+    // =========================================================================
     // Reads the ip address returned from the dns server
     function _ipAddress(packet, answerLength) {
         local array = [];
@@ -617,16 +621,16 @@ class W5500.DNS {
 
 
 
-    /***************************************************************************
-     *  _parsePacket
-     *  Returns:
-     *      arrayIP - an array which contains the ip address
-     *      errorMsg - error msg in event of un successful dns query
-     *  Parameters:
-     *      packet - blob received from the dns server
-     *      hostNameR - hostName in string form
-     *      cbR - to be called after ip address is returned
-     ***************************************************************************/
+    // =========================================================================
+     //  _parsePacket
+     //  Returns:
+     //      arrayIP - an array which contains the ip address
+     //      errorMsg - error msg in event of un successful dns query
+     //  Parameters:
+     //      packet - blob received from the dns server
+     //      hostNameR - hostName in string form
+     //      cbR - to be called after ip address is returned
+    // =========================================================================
     // breaks up the received packet checking to ensure its validity and finally
     // finding the ip address
     function _parsePacket(packet, hostNameR, cbR) {
@@ -746,18 +750,18 @@ class W5500.DNS {
             }
             return arrayIP;
         } else {
-            throw W5500_DNS_ERR_INVLID_RCORD;
+            return W5500_DNS_ERR_INVLID_RCORD;
         }
 
     }
 
-    /***************************************************************************
-     *  _arrayToString
-     *  Returns:
-     *      string - a string representation of an string address
-     *  Parameters:
-     *      array - an array representation of an ipv4 address
-     **************************************************************************/
+    // =========================================================================
+     //  _arrayToString
+     //  Returns:
+     //      string - a string representation of an string address
+     //  Parameters:
+     //      array - an array representation of an ipv4 address
+    // =========================================================================
     function _arrayToString(array) {
         local string = array[0].tostring();
         for (local i = 1; i < array.len(); i++ ) {
@@ -765,14 +769,14 @@ class W5500.DNS {
         }
         return string;
     }
-    /***************************************************************************
-     *  _backOffHandler
-     *  Returns:
-     *  Parameters:
-     *       hostName - a string containing a hostName address
-     *       cb - a callback function to be called once received packet is unpacked
-     *       connection - the instance of the connection
-     **************************************************************************/
+    // =========================================================================
+     //  _backOffHandler
+     //  Returns:
+     //  Parameters:
+     //       hostName - a string containing a hostName address
+     //       cb - a callback function to be called once received packet is unpacked
+     //       connection - the instance of the connection
+    // =========================================================================
     // handles re query back off if a server is non responsive
     function _backOffHandler(hostName, connection, cb) {
 
@@ -799,13 +803,13 @@ class W5500.DNS {
 
     }
 
-    /***************************************************************************
-     *  _dnsServerChange
-     *  Returns:
-     *  Parameters:
-     *      hostName - a string containing a hostName adress
-     *      cb - a callback function to be called once received packet is unpacked
-     ***************************************************************************/
+    // =========================================================================
+     //  _dnsServerChange
+     //  Returns:
+     //  Parameters:
+     //      hostName - a string containing a hostName adress
+     //      cb - a callback function to be called once received packet is unpacked
+    // =========================================================================
      // switches between dns servers by incrementing _ipCount when dnsResolve
      // chooses a the next dns ip adress from the array
      function _dnsServerChange(hostName, cb) {
@@ -822,19 +826,19 @@ class W5500.DNS {
 
 
 
-    /***************************************************************************
-     *  dnsResolve
-     *  Returns:
-     *  Parameters:
-     *      hostName - a string containing a hostName address
-     *      cb - a callback function to be called once received packet is unpacked
-     ***************************************************************************/
+    // =========================================================================
+     //  dnsResolve
+     //  Returns:
+     //  Parameters:
+     //      hostName - a string containing a hostName address
+     //      cb - a callback function to be called once received packet is unpacked
+    // =========================================================================
     // Transmit the packet to a dns server and receives the response
     function dnsResolve(hostName, cb) {
 
         // check if have run through every dns server to attempt to retrieve ip
-        if (_ipCount > W5500_DNS_NUM_DNS_SERVERS) {
-            throw "Have run through all listed dns servers unable to retrieve ip";
+        if (_ipCount > _dnsIpAddr.len()) {
+            cb(W5500_DNS_ERR_OUT_OF_DNS_SERVERS, null);
         }
         _generateProcessId();
         local hostNameArray = _questionName(hostName);
