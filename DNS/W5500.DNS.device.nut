@@ -145,8 +145,16 @@ class W5500.DNS {
      //  Parameters:
      //     array - an array of strings where the strings are ip addresses
     // =========================================================================
-    //
+    // inputs users desired DNS server ip addresses
 
+    function inputIpAddresses (array) {
+        for (local i = 0; i < array.len(); i++) {
+            if (typeof(array[i]) != "string") {
+                throw W5500_DNS_IP_MUST_BE_A_STRING ;
+            }
+        }
+        _dnsIpAddr = array;
+    }
 
     // =========================================================================
      //  generateProcessId
