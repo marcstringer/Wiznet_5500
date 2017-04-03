@@ -43,7 +43,7 @@ This function performs a dns request for the given hostname Returning IPV4 addre
     });
 ```
 ### inputIpAddresses(*array*)
-This function is used to input the dns servers ip addresses that you want the dns request to go to.
+This function is used to input the users preferred DNS servers ip addresses.
 
 | Key | Data Type |Required | Default Value |Description |
 |----|------------|---------|--------------|------------|
