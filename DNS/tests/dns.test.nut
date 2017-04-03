@@ -193,12 +193,18 @@ class DeviceTestCase extends ImpTestCase {
 
         return Promise(function(resolve, reject) {
             dns.dnsResolve(HOST_NAME_A, function(err, data) {
-                // first ip address failed moved to the next 1
-                this.assertTrue(dns._ipCount == 1, "ipcoutn is "+ dns._ipCount);
-                // check that there is an ip address entered
-                for (local i = 0; i < 4; i++) {
-                    this.assertTrue(data[0].v[i] != null);
+
+                try {
+                    // first ip address failed moved to the next 1
+                    this.assertTrue(dns._ipCount == 1, "ipcoutn is "+ dns._ipCount);
+                    // check that there is an ip address entered
+                    for (local i = 0; i < 4; i++) {
+                        this.assertTrue(data[0].v[i] != null);
+                    }
+                } catch (e) {
+                    return reject(e);
                 }
+
                 resolve();
             }.bindenv(this));
         }.bindenv(this));
@@ -211,14 +217,15 @@ class DeviceTestCase extends ImpTestCase {
         local dns = W5500.DNS(_wiz);
         return Promise(function(resolve, reject) {
             dns.dnsResolve(HOST_NAME_CNAME, function(err, data) {
-
-                // check that connected to first dns server
-                this.assertTrue(dns._ipCount == 0);
-                // check that there is an ip address entered
-                for (local i = 0; i < data.len(); i++) {
-                    this.assertTrue(data[i].v != null);
+                try {
+                    this.assertTrue(dns._ipCount == 0);
+                    // check that there is an ip address entered
+                    for (local i = 0; i < data.len(); i++) {
+                        this.assertTrue(data[i].v != null);
+                    }
+                } catch (e) {
+                    return reject(e);
                 }
-
                 resolve();
             }.bindenv(this));
         }.bindenv(this));
@@ -231,7 +238,12 @@ class DeviceTestCase extends ImpTestCase {
         local dns = W5500.DNS(_wiz);
         return Promise(function(resolve, reject) {
             dns.dnsResolve(HOST_NAME_NO_DNS, function(err, data) {
-                this.assertTrue(err == W5500_DNS_ERR_DOMAIN, err);
+                try {
+                    this.assertTrue(err == W5500_DNS_ERR_DOMAIN, err);
+                } catch (e) {
+                    return reject(e);
+                }
+
                 resolve();
             }.bindenv(this));
         }.bindenv(this));
@@ -245,25 +257,62 @@ class DeviceTestCase extends ImpTestCase {
         return Promise(function(resolve, reject) {
             dns.dnsResolve(HOST_NAME_MULT_A, function(err, data) {
 
-                // check that connected to first dns server
-                this.assertTrue(dns._ipCount == 0, "dns server contacted "+ dns._ipCount);
-                // check that there is an ip address entered
-                for (local i = 0; i < data.len(); i++) {
-                    this.assertTrue(data[i].v != null);
+                try {
+                    // check that connected to first dns server
+                    this.assertTrue(dns._ipCount == 0, "dns server contacted "+ dns._ipCount);
+                    // check that there is an ip address entered
+                    for (local i = 0; i < data.len(); i++) {
+                        this.assertTrue(data[i].v != null);
+                    }
+                    this.assertTrue (data.len() == 4, "the actual length "+ data.len());
+                } catch (e) {
+                    return reject(e);
                 }
-                this.assertTrue (data.len() == 4, "the actual length "+ data.len())
+
                 resolve();
             }.bindenv(this));
         }.bindenv(this));
 
     }
 
+    // test for consecutive dns requests
+    function testConsecutiveDns() {
+        _wiz.configureNetworkSettings(SOURCE_IP, SUBNET_MASK, GATEWAY_IP);
+        local dns = W5500.DNS(_wiz);
+        return Promise(function(resolve, reject) {
+            dns.dnsResolve(HOST_NAME_A, function(err, data) {
 
+                try {
+                    // check that connected to first dns server
+                    this.assertTrue(dns._ipCount == 0, "dns server contacted "+ dns._ipCount);
+                    // check that there is an ip address entered
+                    for (local i = 0; i < data.len(); i++) {
+                        this.assertTrue(data[i].v != null);
+                    }
+                } catch (e) {
+                    return reject(e);
+                }
 
+                dns.dnsResolve(HOST_NAME_CNAME, function(err, data) {
 
+                    try {
+                        // check that connected to first dns server
+                        this.assertTrue(dns._ipCount == 0, "dns server contacted "+ dns._ipCount);
+                        // check that there is an ip address entered
+                        for (local i = 0; i < data.len(); i++) {
+                            this.assertTrue(data[i].v != null);
+                        }
+                    } catch (e) {
+                        return reject(e);
+                    }
 
+                    resolve();
+                }.bindenv(this));
 
+            }.bindenv(this));
+        }.bindenv(this));
 
+    }
 
 
 

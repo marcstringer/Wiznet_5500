@@ -123,22 +123,34 @@ class W5500.DNS {
     _connection = null; // wiznet connection instance
     _debug = null; // displays logs
     _waiting = null; // waiting for a response from the server
+    _dnsIpAddr = null; // array of ip addresses for dns servers
 
 
-    // array of ip addresses for dns servers
-    _dnsIpAddr = [
-        "8.8.8.8",
-        "8.8.4.4",
-        "208.67.222.222",
-        "208.67.220.220"
-    ]
+
     constructor(wiznet) {
         _wiz = wiznet;
         _ipCount = 0;
         _retryCount = 0;
         _receivedDataFlag = false;
         _debug = 0;
+        _dnsIpAddr = [
+            "8.8.8.8",
+            "8.8.4.4",
+            "208.67.222.222",
+            "208.67.220.220"
+        ];
 
+    }
+
+    // =========================================================================
+     //  inputIpAddresses
+     //  Returns:
+     //  Parameters:
+     //     array - an array of strings where the strings are ip addresses
+    // =========================================================================
+    //
+    function inputIpAddresses (array) {
+        _dnsIpAddr = array;
     }
 
     // =========================================================================
@@ -716,7 +728,6 @@ class W5500.DNS {
 
         // if it is a CNAME answer
         else if (initialRecord == W5500_DNS_CNAME) {
-            server.log("was a cname");
             for (local cnt_i = 0; cnt_i < numAns; cnt_i++) {
                 // check name and record on subsequent loops
                 if (cnt_i > 0) {
@@ -838,6 +849,7 @@ class W5500.DNS {
 
         // check if have run through every dns server to attempt to retrieve ip
         if (_ipCount > _dnsIpAddr.len()) {
+            _ipCount = 0;
             cb(W5500_DNS_ERR_OUT_OF_DNS_SERVERS, null);
         }
         _generateProcessId();
@@ -865,6 +877,7 @@ class W5500.DNS {
                 IPArray = _parsePacket(data, hostName, cb);
                 _connection.close( function () {
                     _connection = null;
+                    _retryCount = 0;
                     // check for error messages
                     if (typeof(IPArray) == "string") {
                         cb(IPArray, null);
@@ -879,7 +892,7 @@ class W5500.DNS {
         _wiz.openConnection(destIP, destPort, W5500_SOCKET_MODE_UDP, function(err, connection) {
 
             if (err) {
-                server.error("Connection failed " + err);
+                if (_debug) {server.log("Connection failed " + err)};
                 _ipCount += 1;
                 dnsResolve(hostName, cb);
             };
@@ -892,7 +905,7 @@ class W5500.DNS {
                 // transmit the dns packet
                 connection.transmit(packet, function(err) {
                     if (err) {
-                        server.error("Send failed, closing: " + err);
+                        if (_debug) {server.log("Send failed, closing: " + err)};
                         connection.close( function () {
                             _connection = null;
                         }.bindenv(this));
